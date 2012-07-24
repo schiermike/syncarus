@@ -196,17 +196,7 @@ public class SyncTreeViewer extends CheckboxTreeViewer {
 		addCheckStateListener(new ICheckStateListener() {
 			@Override
 			public void checkStateChanged(final CheckStateChangedEvent e) {
-				// check subelements, if element is a directory
 				setSubtreeChecked(e.getElement(), e.getChecked());
-
-				// check super-elements, if element gets checked
-				if (e.getChecked()) {
-					DiffNode parent = ((DiffNode) e.getElement()).getParent();
-					while (parent != null && !getChecked(parent) && DiffControl.getRootDiffNode() != parent) {
-						setChecked(parent, true);
-						parent = parent.getParent();
-					}
-				}
 			}
 		});
 	}

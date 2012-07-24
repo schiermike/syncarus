@@ -2,6 +2,7 @@ package net.syncarus.action.tree;
 
 import net.syncarus.action.SyncViewAction;
 import net.syncarus.gui.SyncTreeViewer;
+import net.syncarus.model.DiffNode;
 import net.syncarus.rcp.ResourceRegistry;
 
 import org.eclipse.jface.viewers.CheckboxTreeViewer;
@@ -23,9 +24,17 @@ public class FlipCheckStatusAction extends SyncViewAction {
 	public void run() {
 		CheckboxTreeViewer viewer = getTreeViewer();
 		IStructuredSelection selection = (IStructuredSelection) viewer.getSelection();
-		// FIXME: this does not work for subfolders, their tick states aren't flipped
 		for (Object selected : selection.toList()) {
-			viewer.setChecked(selected, !viewer.getChecked(selected));
+			boolean checkState = viewer.getChecked(selected);
+			viewer.setSubtreeChecked(selected, !checkState);
 		}
+	}
+	
+	private void switchTickState(DiffNode node) {
+		boolean checkState = getTreeViewer().getChecked(node);
+		getTreeViewer().setChecked(node, !checkState);
+		if (node.isDirectory())
+			for (DiffNode subNode : node.getChildren())
+				switchTickState(subNode);
 	}
 }
