@@ -58,6 +58,10 @@ public class CreateRandomDirectoryStructure {
 			fail(e.getMessage());
 		}
 	}
+	
+	public void createDifferenceThatCanOnlyBeDetectedWithChecksums() {
+		// TODO: implement, create files of equal length and mod-date but different content
+	}
 
 	private static final double PROP_FOLDER = 0.145;
 	private static final double PROP_FILE = 0.85;
@@ -82,7 +86,7 @@ public class CreateRandomDirectoryStructure {
 	
 	private void writeRandomContent(File file) throws IOException {
 		BufferedWriter writer = new BufferedWriter(new FileWriter(file));
-		int lines = rand.nextInt(1000);
+		int lines = rand.nextInt(100);
 		while (lines-->0)
 			writer.write(genName() + "\n");
 		writer.close();
@@ -98,8 +102,8 @@ public class CreateRandomDirectoryStructure {
 			if (r < 0.95) {
 				if (f.isFile()) {
 					// simply copy the file
-					// TODO: change the file somehow to simulate more situations (different file times, etc.)
 					FileUtils.copyFileToDirectory(f, destDir, true);
+					manipulateFiles(f, new File(destDir, f.getName()));
 				} else if (rand.nextFloat() < 0.1) {
 					// copy the directory, nothing else to be done here
 					FileUtils.copyDirectory(f,  destDir, true);
@@ -116,6 +120,38 @@ public class CreateRandomDirectoryStructure {
 		}
 	}
 	
+	/**
+	 * Precondition: both files exist.
+	 * Now manipulate them
+	 * @param srcFile
+	 * @param destFile
+	 * @throws IOException 
+	 */
+	private void manipulateFiles(File srcFile, File destFile) throws IOException {
+		double r = rand.nextFloat();
+		
+		if (r < 0.05) {
+			// same content, source newer time
+			srcFile.setLastModified(destFile.lastModified() + 4000);
+		} else if (r < 0.1) {
+			// same content, destination newer time
+			srcFile.setLastModified(destFile.lastModified() - 6000);
+		} else if (r < 0.2) {
+			// different content, source newer time
+			writeRandomContent(destFile);
+			srcFile.setLastModified(destFile.lastModified() + 8000);
+		} else if (r < 0.3) {
+			// different content, destination newer time
+			writeRandomContent(destFile);
+			srcFile.setLastModified(destFile.lastModified() - 10000);
+		} else if (r < 0.31) {
+			// different content, same time
+			writeRandomContent(destFile);
+			srcFile.setLastModified(destFile.lastModified());
+		}
+		// equal files
+	}
+
 	/**
 	 * deletes the file, or, if it is a directory, recursively deletes that directory.
 	 * @param file
