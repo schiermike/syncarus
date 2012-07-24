@@ -12,7 +12,11 @@ public class FlipCheckStatusAction extends SyncViewAction {
 	public FlipCheckStatusAction(SyncTreeViewer viewer) {
 		setText("Flip tick states");
 		setIcon(ResourceRegistry.IMAGE_FLIP_CHECK_STATE);
-		setToolTipText("Flips the tick-state of all selected items");
+	}
+	
+	@Override
+	public boolean isEnabled() {
+		return !getSelectedNodes().isEmpty();
 	}
 
 	@Override

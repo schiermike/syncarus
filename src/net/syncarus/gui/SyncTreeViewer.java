@@ -16,9 +16,7 @@ import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.CheckStateChangedEvent;
 import org.eclipse.jface.viewers.CheckboxTreeViewer;
-import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.ICheckStateListener;
-import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.IStructuredContentProvider;
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.LabelProvider;
@@ -195,13 +193,6 @@ public class SyncTreeViewer extends CheckboxTreeViewer {
 	}
 
 	private void createListeners() {
-		addDoubleClickListener(new IDoubleClickListener() {
-			@Override
-			public void doubleClick(DoubleClickEvent event) {
-				switchStatusAction.run();
-			}
-		});
-
 		addCheckStateListener(new ICheckStateListener() {
 			@Override
 			public void checkStateChanged(final CheckStateChangedEvent e) {
@@ -243,11 +234,10 @@ public class SyncTreeViewer extends CheckboxTreeViewer {
 		menuManager.addMenuListener(new IMenuListener() {
 			@Override
 			public void menuAboutToShow(IMenuManager manager) {
-				manager.add(flipCheckStatusAction);
-
 				if (switchStatusAction.isEnabled())
 					manager.add(switchStatusAction);
-
+				if (flipCheckStatusAction.isEnabled())
+					manager.add(flipCheckStatusAction);
 				if (showLeftAction.isEnabled())
 					manager.add(showLeftAction);
 				if (showRightAction.isEnabled())
