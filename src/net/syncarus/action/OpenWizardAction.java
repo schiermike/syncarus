@@ -9,7 +9,7 @@ import org.eclipse.jface.dialogs.MessageDialog;
 public class OpenWizardAction extends SyncViewAction {
 	
 	public OpenWizardAction() {
-		setText("Choose directories");
+		setText("Select locations");
 		setIcon(ResourceRegistry.IMAGE_SELECT_LOCATION);
 	}
 

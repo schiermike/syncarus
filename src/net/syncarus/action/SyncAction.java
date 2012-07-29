@@ -20,7 +20,7 @@ public class SyncAction extends SyncViewAction
 {
 	public SyncAction()
 	{
-		setText("Make changes");
+		setText("Apply changes");
 		setIcon(ResourceRegistry.IMAGE_SYNCHRONIZE);
 	}
 

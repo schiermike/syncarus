@@ -5,7 +5,8 @@
    <extension
          id="application"
          point="org.eclipse.core.runtime.applications">
-      <application>
+      <application
+            icon="icons/logo.ico">
          <run
                class="net.syncarus.rcp.Application">
          </run>
@@ -26,7 +27,7 @@
       <view
             allowMultiple="false"
             class="net.syncarus.gui.SyncView"
-            icon="icons/synch.gif"
+            icon="icons/comparison_tree.png"
             id="net.syncarus.gui.SyncView"
             name="Where are the differences?"/>
       <view
@@ -39,8 +40,8 @@
             allowMultiple="false"
             class="net.syncarus.gui.LogView"
             id="net.syncarus.gui.LogView"
-            icon="icons/monitor.png"
-            name="What has just happened?"
+            icon="icons/log.png"
+            name="What is going on?"
             restorable="true">
       </view>
    </extension>
