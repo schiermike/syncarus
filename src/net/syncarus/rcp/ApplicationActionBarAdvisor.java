@@ -1,5 +1,6 @@
 package net.syncarus.rcp;
 
+import net.syncarus.action.AboutAction;
 import net.syncarus.action.CompareAction;
 import net.syncarus.action.OpenWizardAction;
 import net.syncarus.action.SyncAction;
@@ -50,7 +51,6 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
 		showPreferencesAction = ActionFactory.PREFERENCES.create(window);
 		showPreferencesAction.setImageDescriptor(rr.getImageDescriptor(ResourceRegistry.IMAGE_PREFERENCES));
 
-		showAboutAction = ActionFactory.ABOUT.create(window);
-		showAboutAction.setImageDescriptor(rr.getImageDescriptor(ResourceRegistry.IMAGE_ABOUT));
+		showAboutAction = new AboutAction();
 	}
 }
