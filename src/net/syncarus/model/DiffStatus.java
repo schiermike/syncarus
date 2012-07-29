@@ -44,10 +44,10 @@ public enum DiffStatus {
 
 	/**
 	 * @return the inverted status<br>
-	 *         example1: the opposite of "copy from source to target" is
-	 *         "delete source"<br>
-	 *         example2: the opposite of "overwrite source" is
-	 *         "overwrite target"
+	 *         example1: the opposite of "copy from A to B" is
+	 *         "delete A"<br>
+	 *         example2: the opposite of "overwrite A" is
+	 *         "overwrite B"
 	 */
 	public DiffStatus getInvertedDiffStatus() {
 		switch (this) {

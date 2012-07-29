@@ -10,7 +10,7 @@ public class OpenWizardAction extends SyncViewAction {
 	
 	public OpenWizardAction() {
 		setText("Choose directories");
-		setIcon(ResourceRegistry.IMAGE_CHOOSE_DIR);
+		setIcon(ResourceRegistry.IMAGE_SELECT_LOCATION);
 	}
 
 	@Override

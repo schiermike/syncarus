@@ -1,3 +1,4 @@
 # Build directory
 /bin/*
 /.settings
+/*.classpath

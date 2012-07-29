@@ -54,7 +54,7 @@ public class DiffTask implements IRunnableWithProgress {
 	}
 
 	/**
-	 * Checks whether both source and target paths are set i.e. whether the
+	 * Checks whether both root paths are set i.e. whether the
 	 * <code>DifferenceController</code> has been properly initialised. <br>
 	 * The DifferenceTree is build with the help of the
 	 * <code>DifferenceController</code> and the treeViewer is updated. <br>
@@ -75,8 +75,8 @@ public class DiffTask implements IRunnableWithProgress {
 			DiffControl.LOG.add("Calculating size of datasets to compare");
 			filesTotal = FileOperation.totalNumOfFiles(DiffControl.toFileA(File.separator));
 
-			DiffControl.LOG.add("Comparing source and target directories");
-			monitor.subTask("Differentiation of source and target directories");
+			DiffControl.LOG.add("Comparing directories");
+			monitor.subTask("Comparison of locations A and B");
 
 			GuiRefresher guiRefresher = new GuiRefresher();
 
@@ -104,7 +104,7 @@ public class DiffTask implements IRunnableWithProgress {
 
 	/**
 	 * builds a tree consisting of nodes and lists which represent the
-	 * difference between source and target location. Nodes represent folders
+	 * difference between locations A and B. Nodes represent folders
 	 * which have differences somewhere below and list-entries represent
 	 * file-differences or folders which will be copied, removed, etc. Every
 	 * list-entry and node is identified by its relative path.<br>
@@ -113,49 +113,46 @@ public class DiffTask implements IRunnableWithProgress {
 	 * no children were appended.
 	 * 
 	 * @param relativePath
-	 *            the relative path of source and target
 	 * @param localNode
-	 *            the node holding the difference-information at this recursion
-	 *            level
 	 */
 	private void buildDiffTreeRecursively(String relativePath, DiffNode localNode) throws CancelationException,
 			IOException {
-		Set<String> rightPathSet = new HashSet<String>();
+		Set<String> pathBSet = new HashSet<String>();
 
-		File left = DiffControl.toFileA(relativePath);
-		File right = DiffControl.toFileB(relativePath);
-
-		// null denotes an I/O error
-		if (left.listFiles() == null)
-			throw new IOException("The directory '" + left.getAbsolutePath() + "' causes an I/O error!");
+		File dirA = DiffControl.toFileA(relativePath);
+		File dirB = DiffControl.toFileB(relativePath);
 
 		// null denotes an I/O error
-		if (right.listFiles() == null)
-			throw new IOException("The directory '" + right.getAbsolutePath() + "' causes an I/O error!");
+		if (dirA.listFiles() == null)
+			throw new IOException("The directory '" + dirA.getAbsolutePath() + "' causes an I/O error!");
+
+		// null denotes an I/O error
+		if (dirB.listFiles() == null)
+			throw new IOException("The directory '" + dirB.getAbsolutePath() + "' causes an I/O error!");
 
 		// copy all children of localRootRight to a HashMap
-		for (File rightChild : right.listFiles()) {
-			String relativePathChild = DiffControl.getRelativePath(rightChild);
-			rightPathSet.add(relativePathChild);
+		for (File childB : dirB.listFiles()) {
+			String relativePathChild = DiffControl.getRelativePath(childB);
+			pathBSet.add(relativePathChild);
 		}
 
-		for (File leftChild : left.listFiles()) {
-			String relativePathChild = DiffControl.getRelativePath(leftChild);
-			if (!DiffControl.fileFilter.isValid(leftChild.getName()))
+		for (File childA : dirA.listFiles()) {
+			String relativePathChild = DiffControl.getRelativePath(childA);
+			if (!DiffControl.fileFilter.isValid(childA.getName()))
 				continue;
 
-			if (!rightPathSet.contains(relativePathChild)) {
-				// if target doesn't contain this file/folder
+			if (!pathBSet.contains(relativePathChild)) {
+				// if location B doesn't contain this file/folder
 				// add this file/folder to localNode with appropriate status
-				localNode.createChildNode(relativePathChild, leftChild.isDirectory(), DiffStatus.COPY_TO_B);
+				localNode.createChildNode(relativePathChild, childA.isDirectory(), DiffStatus.COPY_TO_B);
 			} else {
-				// target also contains file/folder with the same name
-				// remove that file/folder from the targetMap because it is also
-				// in the source
-				rightPathSet.remove(relativePathChild);
-				File rightChild = DiffControl.toFileB(relativePathChild);
+				// location B also contains file/folder with the same name
+				// remove that file/folder from the location B map because it is also
+				// in location A
+				pathBSet.remove(relativePathChild);
+				File childB = DiffControl.toFileB(relativePathChild);
 
-				if (leftChild.isDirectory()) {
+				if (childA.isDirectory()) {
 					// add a node with status clean and exec the recursion on
 					// this folder
 					DiffNode childNode = localNode.createChildNode(relativePathChild, true, DiffStatus.CLEAN);
@@ -165,15 +162,15 @@ public class DiffTask implements IRunnableWithProgress {
 					if (!childNode.hasChildren())
 						localNode.removeChildNode(childNode);
 				} else {
-					DiffStatus status = compareFiles(leftChild, rightChild);
+					DiffStatus status = compareFiles(childA, childB);
 					if (DiffControl.syncTimestamps && status == DiffStatus.TOUCH) {
 						File oldFile, newFile;
-						if (leftChild.lastModified() < rightChild.lastModified()) {
-							oldFile = leftChild;
-							newFile = rightChild;
+						if (childA.lastModified() < childB.lastModified()) {
+							oldFile = childA;
+							newFile = childB;
 						} else {
-							oldFile = rightChild;
-							newFile = leftChild;
+							oldFile = childB;
+							newFile = childA;
 						}
 						SyncTask.touchFile(oldFile, newFile);
 					} else if (status != DiffStatus.CLEAN)
@@ -182,37 +179,37 @@ public class DiffTask implements IRunnableWithProgress {
 			}
 
 			// increment process monitor
-			worked(leftChild);
+			worked(childA);
 		}
 
-		// add remaining file on right side to difference-tree
-		for (String relativePathChild : rightPathSet) {
-			File rightFile = DiffControl.toFileB(relativePathChild);
-			if (!DiffControl.fileFilter.isValid(rightFile.getName()))
+		// add remaining file from side B to the difference-tree
+		for (String relativePathChild : pathBSet) {
+			File childB = DiffControl.toFileB(relativePathChild);
+			if (!DiffControl.fileFilter.isValid(childB.getName()))
 				continue;
 
-			localNode.createChildNode(relativePathChild, rightFile.isDirectory(), DiffStatus.REMOVE_FROM_B);
+			localNode.createChildNode(relativePathChild, childB.isDirectory(), DiffStatus.REMOVE_FROM_B);
 		}
 	}
 
-	private DiffStatus compareFiles(File leftFile, File rightFile) throws IOException {
-		if (leftFile.length() == rightFile.length() && leftFile.lastModified() != rightFile.lastModified()
+	private DiffStatus compareFiles(File fileA, File fileB) throws IOException {
+		if (fileA.length() == fileB.length() && fileA.lastModified() != fileB.lastModified()
 				&& DiffControl.syncTimestampsWithoutChecksum)
 			return DiffStatus.TOUCH;
 
-		if (leftFile.lastModified() < rightFile.lastModified()) {
-			if (FileUtils.contentEquals(leftFile, rightFile))
+		if (fileA.lastModified() < fileB.lastModified()) {
+			if (FileUtils.contentEquals(fileA, fileB))
 				return DiffStatus.TOUCH;
 
-			// target file is newer -> source file will be overwritten
+			// file B is newer -> file A will be overwritten
 			return DiffStatus.REPLACE_A;
-		} else if (leftFile.lastModified() > rightFile.lastModified()) {
-			if (FileUtils.contentEquals(leftFile, rightFile))
+		} else if (fileA.lastModified() > fileB.lastModified()) {
+			if (FileUtils.contentEquals(fileA, fileB))
 				return DiffStatus.TOUCH;
 
-			// source file is newer -> target file will be overwritten
+			// file A is newer -> file B will be overwritten
 			return DiffStatus.REPLACE_B;
-		} else if (leftFile.length() != rightFile.length()) {
+		} else if (fileA.length() != fileB.length()) {
 			// files have same change date but different size -> conflict
 			return DiffStatus.CONFLICT;
 		}

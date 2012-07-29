@@ -53,7 +53,7 @@ public class DiffPropertiesView extends ViewPart implements ISelectionChangedLis
 		});
 
 		initializeToolBar();
-		
+
 		SyncarusPlugin.getInstance().getSyncView().getViewer().addSelectionChangedListener(this);
 	}
 
@@ -72,23 +72,24 @@ public class DiffPropertiesView extends ViewPart implements ISelectionChangedLis
 		// remove all existing elements from the view container
 		for (Control control : container.getChildren())
 			control.dispose();
-		
+
 		IStructuredSelection selection = (IStructuredSelection) event.getSelection();
 		if (!selection.isEmpty()) {
-			for (@SuppressWarnings("rawtypes") Iterator iter = selection.iterator(); iter.hasNext();) {
+			for (@SuppressWarnings("rawtypes")
+			Iterator iter = selection.iterator(); iter.hasNext();) {
 				DiffNode node = (DiffNode) iter.next();
 				if (node.getStatus() == DiffStatus.CLEAN)
 					continue;
-				NodeInfoComposite comp = new NodeInfoComposite(container,  node);
+				NodeInfoComposite comp = new NodeInfoComposite(container, node);
 				comp.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 			}
 		}
 
 		scrolledLayout();
 	}
-	
+
 	private void scrolledLayout() {
-		Point p = container.computeSize(scrolledComposite.getSize().x-20, SWT.DEFAULT);
+		Point p = container.computeSize(scrolledComposite.getSize().x - 20, SWT.DEFAULT);
 		scrolledComposite.setMinSize(p);
 		container.layout();
 	}

@@ -28,19 +28,19 @@
             class="net.syncarus.gui.SyncView"
             icon="icons/synch.gif"
             id="net.syncarus.gui.SyncView"
-            name="Differences Tree"/>
+            name="Where are the differences?"/>
       <view
             allowMultiple="false"
             class="net.syncarus.gui.DiffPropertiesView"
-            icon="icons/fileinfos.png"
+            icon="icons/properties.png"
             id="net.syncarus.gui.DiffPropertiesView"
-            name="Properties"/>
+            name="What will happen?"/>
       <view
             allowMultiple="false"
             class="net.syncarus.gui.LogView"
             id="net.syncarus.gui.LogView"
             icon="icons/monitor.png"
-            name="Log"
+            name="What has just happened?"
             restorable="true">
       </view>
    </extension>

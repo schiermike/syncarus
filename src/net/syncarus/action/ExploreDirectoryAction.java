@@ -10,12 +10,12 @@ import net.syncarus.rcp.ResourceRegistry;
 import net.syncarus.rcp.SyncarusPlugin;
 
 public class ExploreDirectoryAction extends SyncViewAction {
-	private final boolean isLeftSideAction;
+	private final boolean isSideAAction;
 
-	public ExploreDirectoryAction(SyncTreeViewer viewer, boolean isLeftSideAction) {
-		setText(isLeftSideAction ? "Show left folder in Explorer" : "Show right folder in Explorer");
+	public ExploreDirectoryAction(SyncTreeViewer viewer, boolean isSideAAction) {
+		setText(isSideAAction ? "Show folder of location A in Explorer" : "Show folder of location B in Explorer");
 		setIcon(ResourceRegistry.IMAGE_SHOW_IN_EXPLORER);
-		this.isLeftSideAction = isLeftSideAction;
+		this.isSideAAction = isSideAAction;
 	}
 
 	@Override
@@ -31,10 +31,10 @@ public class ExploreDirectoryAction extends SyncViewAction {
 			if (status == DiffStatus.CLEAN)
 				return true;
 
-			if (isLeftSideAction && (status == DiffStatus.COPY_TO_B || status == DiffStatus.REMOVE_FROM_A))
+			if (isSideAAction && (status == DiffStatus.COPY_TO_B || status == DiffStatus.REMOVE_FROM_A))
 				return true;
 
-			if (!isLeftSideAction && (status == DiffStatus.COPY_TO_A || status == DiffStatus.REMOVE_FROM_B))
+			if (!isSideAAction && (status == DiffStatus.COPY_TO_A || status == DiffStatus.REMOVE_FROM_B))
 				return true;
 		}
 
@@ -49,7 +49,7 @@ public class ExploreDirectoryAction extends SyncViewAction {
 		DiffNode node = getSelectedNodes().get(0);
 
 		// get path and convert it to an UNC path for windows to execute
-		if (isLeftSideAction)
+		if (isSideAAction)
 			exec(DiffControl.toFileA(node).getAbsolutePath());
 		else
 			exec(DiffControl.toFileB(node).getAbsolutePath());

@@ -30,8 +30,8 @@ import org.eclipse.swt.widgets.Menu;
 
 public class SyncTreeViewer extends CheckboxTreeViewer {
 	private Action switchStatusAction;
-	private Action showLeftAction;
-	private Action showRightAction;
+	private Action exploreAAction;
+	private Action exploreBAction;
 	private Action flipCheckStatusAction;
 
 	/**
@@ -93,16 +93,16 @@ public class SyncTreeViewer extends CheckboxTreeViewer {
 					imageKey = ResourceRegistry.IMAGE_DIR_NORMAL;
 					break;
 				case COPY_TO_A:
-					imageKey = ResourceRegistry.IMAGE_DIR_ADD_LEFT;
+					imageKey = ResourceRegistry.IMAGE_DIR_ADD_A;
 					break;
 				case COPY_TO_B:
-					imageKey = ResourceRegistry.IMAGE_DIR_ADD_RIGHT;
+					imageKey = ResourceRegistry.IMAGE_DIR_ADD_B;
 					break;
 				case REMOVE_FROM_A:
-					imageKey = ResourceRegistry.IMAGE_DIR_REMOVE_LEFT;
+					imageKey = ResourceRegistry.IMAGE_DIR_REMOVE_A;
 					break;
 				case REMOVE_FROM_B:
-					imageKey = ResourceRegistry.IMAGE_DIR_REMOVE_RIGHT;
+					imageKey = ResourceRegistry.IMAGE_DIR_REMOVE_B;
 					break;
 				default:
 					throw new SyncException(SyncException.INCONSISTENT_STATE_EXCEPTION,
@@ -114,28 +114,28 @@ public class SyncTreeViewer extends CheckboxTreeViewer {
 					throw new SyncException(SyncException.INCONSISTENT_STATE_EXCEPTION,
 							"A file can't have state clean!");
 				case COPY_TO_A:
-					imageKey = ResourceRegistry.IMAGE_FILE_ADD_LEFT;
+					imageKey = ResourceRegistry.IMAGE_FILE_ADD_A;
 					break;
 				case COPY_TO_B:
-					imageKey = ResourceRegistry.IMAGE_FILE_ADD_RIGHT;
+					imageKey = ResourceRegistry.IMAGE_FILE_ADD_B;
 					break;
 				case REPLACE_A:
-					imageKey = ResourceRegistry.IMAGE_FILE_MODIFY_LEFT;
+					imageKey = ResourceRegistry.IMAGE_FILE_REPLACE_A;
 					break;
 				case REPLACE_B:
-					imageKey = ResourceRegistry.IMAGE_FILE_MODIFY_RIGHT;
+					imageKey = ResourceRegistry.IMAGE_FILE_REPLACE_B;
 					break;
 				case REMOVE_FROM_A:
-					imageKey = ResourceRegistry.IMAGE_FILE_REMOVE_LEFT;
+					imageKey = ResourceRegistry.IMAGE_FILE_REMOVE_A;
 					break;
 				case REMOVE_FROM_B:
-					imageKey = ResourceRegistry.IMAGE_FILE_REMOVE_RIGHT;
+					imageKey = ResourceRegistry.IMAGE_FILE_REMOVE_B;
 					break;
 				case TOUCH:
 					imageKey = ResourceRegistry.IMAGE_FILE_TOUCH;
 					break;
 				case CONFLICT:
-					imageKey = ResourceRegistry.IMAGE_FILE_PUZZLED;
+					imageKey = ResourceRegistry.IMAGE_FILE_CONFLICT;
 					break;
 				default:
 					throw new SyncException(SyncException.INCONSISTENT_STATE_EXCEPTION,
@@ -187,8 +187,8 @@ public class SyncTreeViewer extends CheckboxTreeViewer {
 
 	private void createActions() {
 		switchStatusAction = new SwitchStatusAction(this);
-		showLeftAction = new ExploreDirectoryAction(this, true);
-		showRightAction = new ExploreDirectoryAction(this, false);
+		exploreAAction = new ExploreDirectoryAction(this, true);
+		exploreBAction = new ExploreDirectoryAction(this, false);
 		flipCheckStatusAction = new FlipCheckStatusAction(this);
 	}
 
@@ -228,10 +228,10 @@ public class SyncTreeViewer extends CheckboxTreeViewer {
 					manager.add(switchStatusAction);
 				if (flipCheckStatusAction.isEnabled())
 					manager.add(flipCheckStatusAction);
-				if (showLeftAction.isEnabled())
-					manager.add(showLeftAction);
-				if (showRightAction.isEnabled())
-					manager.add(showRightAction);
+				if (exploreAAction.isEnabled())
+					manager.add(exploreAAction);
+				if (exploreBAction.isEnabled())
+					manager.add(exploreBAction);
 			}
 		});
 	}

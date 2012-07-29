@@ -9,7 +9,7 @@ public class CheckAllAction extends SyncViewAction {
 	private boolean checked = false;
 
 	public CheckAllAction() {
-		setText("Tick all nodes");
+		setText("Check all nodes");
 		setIcon(ResourceRegistry.IMAGE_SELECT_TREE);
 	}
 
@@ -18,7 +18,7 @@ public class CheckAllAction extends SyncViewAction {
 		if (!DiffControl.isInitialized())
 			return;
 
-		setText(checked ? "Tick all nodes" : "Untick all nodes");
+		setText(checked ? "Check all nodes" : "Uncheck all nodes");
 		checked = !checked;
 
 		for (DiffNode node : DiffControl.getRootDiffNode().getChildren())

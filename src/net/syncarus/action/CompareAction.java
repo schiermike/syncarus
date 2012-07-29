@@ -19,7 +19,7 @@ public class CompareAction extends SyncViewAction {
 	
 	public CompareAction() {
 		setText("Compare directories");
-		setIcon(ResourceRegistry.IMAGE_DIFF_DETECT);
+		setIcon(ResourceRegistry.IMAGE_COMPARE_LOCATIONS);
 	}
 
 	/**
@@ -36,7 +36,7 @@ public class CompareAction extends SyncViewAction {
 	public void run() {
 		if (!DiffControl.isInitialized()) {
 			MessageDialog.openInformation(null, "No paths set",
-					"First you have to define left and right data sets to do any differentiation!");
+					"First you have to define locations A and B before comparing their content!");
 			return;
 		}
 
@@ -59,7 +59,7 @@ public class CompareAction extends SyncViewAction {
 				.openQuestion(
 						null,
 						"Timestamp synchronization",
-						"Should the file comparison process implicitly synchronize timestamps?\nThis will set the timestamp of source files equal to the timestamp of target files if their content is equal.");
+						"Should the file comparison process implicitly synchronize timestamps?\nThis will set the timestamp of files in location A equal to the timestamp of files in location B if their content is equal.");
 		DiffControl.syncTimestampsWithoutChecksum = false;
 		if (DiffControl.syncTimestamps)
 			DiffControl.syncTimestampsWithoutChecksum = MessageDialog

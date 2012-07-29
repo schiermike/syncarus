@@ -6,7 +6,7 @@ import java.util.List;
 
 /**
  * This class is used to build up a tree handling the detected differences
- * between source and target location. Differences are encoded using predefined
+ * between both locations. Differences are encoded using predefined
  * static int codes. The tree consists of DiffNodes which stand for single
  * folders whereas the fileMaps hold (string,int)-pairs which define the files
  * in the folder (relative-path, code).
@@ -59,8 +59,7 @@ public class DiffNode implements Comparable<DiffNode> {
 	}
 
 	/**
-	 * @return Returns true when the source or the target file object (depending
-	 *         on the state) is a directory
+	 * @return Returns true if either file object A or B  (depending on the state) is a directory
 	 */
 	public boolean isDirectory() {
 		return isDirectory;

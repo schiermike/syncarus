@@ -25,8 +25,8 @@ public class ApplicationWorkbenchAdvisor extends WorkbenchAdvisor {
 	private static final String PERSPECTIVE_ID = "net.syncarus.rcp.Perspective";
 
 	private static final String SETTINGS_PATHS = "path";
-	private static final String SETTINGS_LEFT_ROOT_PATH = "left";
-	private static final String SETTINGS_RIGHT_ROOT_PATH = "right";
+	private static final String SETTINGS_ROOT_A_PATH = "root_a";
+	private static final String SETTINGS_ROOT_B_PATH = "root_b";
 
 	@Override
 	public WorkbenchWindowAdvisor createWorkbenchWindowAdvisor(IWorkbenchWindowConfigurer configurer) {
@@ -61,13 +61,13 @@ public class ApplicationWorkbenchAdvisor extends WorkbenchAdvisor {
 		IDialogSettings dialogSettings = SyncarusPlugin.getInstance().getDialogSettings();
 		IDialogSettings pathSection = dialogSettings.getSection(SETTINGS_PATHS);
 		if (pathSection != null) {
-			String source = pathSection.get(SETTINGS_LEFT_ROOT_PATH);
-			String target = pathSection.get(SETTINGS_RIGHT_ROOT_PATH);
-			if (source != null && target != null)
+			String rootAPath = pathSection.get(SETTINGS_ROOT_A_PATH);
+			String rootBPath = pathSection.get(SETTINGS_ROOT_B_PATH);
+			if (rootAPath != null && rootBPath != null)
 				try {
-					DiffControl.initialize(new File(source), new File(target));
+					DiffControl.initialize(new File(rootAPath), new File(rootBPath));
 				} catch (SyncException e) {
-					MessageDialog.openError(null, "Choosing source and target directories failed", e.getMessage());
+					MessageDialog.openError(null, "Location error", e.getMessage());
 				}
 		}
 
@@ -87,8 +87,8 @@ public class ApplicationWorkbenchAdvisor extends WorkbenchAdvisor {
 		if (DiffControl.isInitialized()) {
 			if (pathSection == null)
 				pathSection = dialogSettings.addNewSection(SETTINGS_PATHS);
-			pathSection.put(SETTINGS_LEFT_ROOT_PATH, DiffControl.rootA);
-			pathSection.put(SETTINGS_RIGHT_ROOT_PATH, DiffControl.rootB);
+			pathSection.put(SETTINGS_ROOT_A_PATH, DiffControl.rootA);
+			pathSection.put(SETTINGS_ROOT_B_PATH, DiffControl.rootB);
 		}
 		return super.preShutdown();
 	}

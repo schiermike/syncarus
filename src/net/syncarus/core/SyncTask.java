@@ -135,19 +135,19 @@ public class SyncTask implements IRunnableWithProgress {
 			switch (node.getStatus()) {
 			case COPY_TO_A:
 			case REPLACE_A:
-				File rightFile = DiffControl.toFileB(node);
-				if (rightFile.isFile())
-					numOfBytesTotal += rightFile.length();
+				File fileB = DiffControl.toFileB(node);
+				if (fileB.isFile())
+					numOfBytesTotal += fileB.length();
 				else
-					numOfBytesTotal += FileOperation.totalNumOfBytes(rightFile);
+					numOfBytesTotal += FileOperation.totalNumOfBytes(fileB);
 				break;
 			case COPY_TO_B:
 			case REPLACE_B:
-				File leftFile = DiffControl.toFileA(node);
-				if (leftFile.isFile())
-					numOfBytesTotal += leftFile.length();
+				File fileA = DiffControl.toFileA(node);
+				if (fileA.isFile())
+					numOfBytesTotal += fileA.length();
 				else
-					numOfBytesTotal += FileOperation.totalNumOfBytes(leftFile);
+					numOfBytesTotal += FileOperation.totalNumOfBytes(fileA);
 				break;
 			}
 		}
@@ -170,17 +170,17 @@ public class SyncTask implements IRunnableWithProgress {
 					|| (node.getStatus() == DiffStatus.UNKNOWN))
 				continue;
 
-			File leftFile = DiffControl.toFileA(node);
-			File rightFile = DiffControl.toFileB(node);
+			File fileA = DiffControl.toFileA(node);
+			File fileB = DiffControl.toFileB(node);
 			// process all other nodes
 			switch (node.getStatus()) {
 			case COPY_TO_A:
-				FileOperation.copy(rightFile, leftFile, this);
+				FileOperation.copy(fileB, fileA, this);
 				node.remove();
 				break;
 
 			case COPY_TO_B:
-				FileOperation.copy(leftFile, rightFile, this);
+				FileOperation.copy(fileA, fileB, this);
 				node.remove();
 				break;
 
@@ -189,7 +189,7 @@ public class SyncTask implements IRunnableWithProgress {
 					throw new SyncException(SyncException.INCONSISTENT_STATE_EXCEPTION, "A DiffNode has state "
 							+ node.getStatus() + " but is a directory - this can't be!");
 
-				FileOperation.copy(rightFile, leftFile, this);
+				FileOperation.copy(fileB, fileA, this);
 				node.remove();
 				break;
 
@@ -198,33 +198,33 @@ public class SyncTask implements IRunnableWithProgress {
 					throw new SyncException(SyncException.INCONSISTENT_STATE_EXCEPTION, "A DiffNode has state "
 							+ node.getStatus() + " but is a directory - this can't be!");
 
-				FileOperation.copy(leftFile, rightFile, this);
+				FileOperation.copy(fileA, fileB, this);
 				node.remove();
 				break;
 
 			// the older file gets the change date of the newer one - same
 			// contents are assumed
 			case TOUCH:
-				if (FileUtils.isFileNewer(leftFile, rightFile))
-					touchFile(rightFile, leftFile);
-				else if (FileUtils.isFileNewer(rightFile, leftFile))
-					touchFile(leftFile, rightFile);
+				if (FileUtils.isFileNewer(fileA, fileB))
+					touchFile(fileB, fileA);
+				else if (FileUtils.isFileNewer(fileB, fileA))
+					touchFile(fileA, fileB);
 				else
 					throw new SyncException(SyncException.INCONSISTENT_STATE_EXCEPTION,
-							"It wasn't necessary to touch a file because both files '" + leftFile.getAbsolutePath()
-									+ "' and '" + rightFile.getAbsolutePath() + "' have same change-date!");
+							"It wasn't necessary to touch a file because both files '" + fileA.getAbsolutePath()
+									+ "' and '" + fileB.getAbsolutePath() + "' have same change-date!");
 				node.remove();
 				break;
 
 			case REMOVE_FROM_A:
-				DiffControl.LOG.add("Deleting '" + leftFile.getAbsolutePath() + "'");
-				FileUtils.forceDelete(leftFile);
+				DiffControl.LOG.add("Deleting '" + fileA.getAbsolutePath() + "'");
+				FileUtils.forceDelete(fileA);
 				node.remove();
 				break;
 
 			case REMOVE_FROM_B:
-				DiffControl.LOG.add("Deleting '" + rightFile.getAbsolutePath() + "'");
-				FileUtils.forceDelete(rightFile);
+				DiffControl.LOG.add("Deleting '" + fileB.getAbsolutePath() + "'");
+				FileUtils.forceDelete(fileB);
 				node.remove();
 				break;
 

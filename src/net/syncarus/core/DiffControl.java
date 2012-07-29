@@ -7,8 +7,7 @@ import net.syncarus.model.DiffStatus;
 import net.syncarus.model.SyncException;
 
 /**
- * It stores the <code>rootDiffNode</code> and source and target directories.<br>
- * This controller is furthermore responsible for providing a lock mechanism to
+ * This controller is responsible for providing a lock mechanism to
  * avoid having multiple jobs running at the same time.
  */
 public class DiffControl {
@@ -53,7 +52,7 @@ public class DiffControl {
 	}
 
 	/**
-	 * Checks whether source and target directories have been set (via
+	 * Checks whether the root directories have been set (via
 	 * <code>initialise</code>) and exist
 	 * 
 	 * @return true on success, else false
@@ -67,24 +66,24 @@ public class DiffControl {
 	}
 
 	/**
-	 * Initialises the Controller by converting source and target paths to a
+	 * Initialises the Controller by converting paths locations A and B to a
 	 * unique form which only has '/' as folder-separators. Also checks validity
 	 * of locations
 	 * 
-	 * @param leftRootDir
-	 * @param rightRootDir
+	 * @param rootADir
+	 * @param rootBDir
 	 */
-	public static void initialize(File leftRootDir, File rightRootDir) {
+	public static void initialize(File rootADir, File rootBDir) {
 		// reformat path-string using '/' as separator char
-		rootA = leftRootDir.getAbsolutePath();
+		rootA = rootADir.getAbsolutePath();
 		if (rootA.endsWith(File.separator)) // remove trailing '/'
 			rootA = rootA.substring(0, rootA.length() - 1);
 
-		rootB = rightRootDir.getAbsolutePath();
+		rootB = rootBDir.getAbsolutePath();
 		if (rootB.endsWith(File.separator))
 			rootB = rootB.substring(0, rootB.length() - 1);
 
-		LOG.add("left-root='" + rootA + "', right-root='" + rootB + "'");
+		LOG.add("rootA='" + rootA + "', rootB='" + rootB + "'");
 
 		resetRootDiffNode();
 	}
@@ -95,27 +94,27 @@ public class DiffControl {
 	 */
 	public static void resetRootDiffNode() {
 		if (!isInitialized())
-			throw new SyncException(SyncException.FILE_COMPARISON, "The synchronization paths are not properly set!");
+			throw new SyncException(SyncException.FILE_COMPARISON, "Selecting the locations failed!\n" + 
+					"Location A: " + (rootA==null ? "not set" : rootA.toString()) + "\n" + 
+					"Location B: " + (rootB==null ? "not set" : rootB.toString()));
 		rootDiffNode = new DiffNode();
 	}
 
 	/**
 	 * converts the absolute path of a file to a relative path using the paths
-	 * of sourceFolder and targetFolder as a base. <br>
+	 * of rootA and rootB as a base. <br>
 	 * The relative path must either be empty or be of the form "/bla/ble". "/"
 	 * or "bla/bli" or "/bla/lib/blu/" are not allowed
 	 * 
 	 * @param absolutePath
-	 *            a file/folder being a sub-element of source or target path
+	 *            a file/folder being a sub-element of root path A or B
 	 * @throws SyncException
-	 *             when <code>file</code> isn't a subfile/sub-folder of source
-	 *             or target path
+	 *             when <code>file</code> isn't a subfile/sub-folder of either 
+	 *             root path A or B
 	 * @return the relative path of the <code>file</code>
 	 */
 	public static String getRelativePath(String absolutePath) {
 		String relativePath;
-		// detect whether the file is from the target or the source location and
-		// remove the leading path
 		if (FileOperation.isSubdirectory(rootA, absolutePath)) {
 			relativePath = absolutePath.substring(rootA.length());
 		} else if (FileOperation.isSubdirectory(rootB, absolutePath)) {
@@ -144,9 +143,6 @@ public class DiffControl {
 		return rootDiffNode;
 	}
 
-	/**
-	 * @return a file object to the absolute source
-	 */
 	public static File toFileA(DiffNode node) {
 		return toFileA(node.getRelativePath());
 	}
@@ -155,9 +151,6 @@ public class DiffControl {
 		return new File(rootA + relativePath);
 	}
 
-	/**
-	 * @return a file object to the absolute target
-	 */
 	public static File toFileB(DiffNode node) {
 		return toFileB(node.getRelativePath());
 	}

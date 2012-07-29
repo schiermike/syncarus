@@ -10,7 +10,7 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 public class FlipCheckStatusAction extends SyncViewAction {
 	
 	public FlipCheckStatusAction(SyncTreeViewer viewer) {
-		setText("Flip tick states");
+		setText("Flip check states");
 		setIcon(ResourceRegistry.IMAGE_FLIP_CHECK_STATE);
 	}
 	
