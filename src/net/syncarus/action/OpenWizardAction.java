@@ -1,6 +1,6 @@
 package net.syncarus.action;
 
-import net.syncarus.core.DiffControl;
+import net.syncarus.core.DiffController;
 import net.syncarus.core.DirSelectWizard;
 import net.syncarus.rcp.ResourceRegistry;
 
@@ -15,12 +15,12 @@ public class OpenWizardAction extends SyncViewAction {
 
 	@Override
 	public void run() {
-		if (!DiffControl.aquireLock()) {
+		if (!DiffController.aquireLock()) {
 			MessageDialog.openWarning(null, "Application busy",
 					"The requested operation cannot be executed due to other currently running operations!");
 			return;
 		}
-		DiffControl.releaseLock();
+		DiffController.releaseLock();
 
 		DirSelectWizard wizard = new DirSelectWizard();
 		if (wizard.open())

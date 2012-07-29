@@ -1,6 +1,6 @@
 package net.syncarus.action;
 
-import net.syncarus.core.DiffControl;
+import net.syncarus.core.DiffController;
 import net.syncarus.core.DiffTask;
 import net.syncarus.rcp.ResourceRegistry;
 import net.syncarus.rcp.SyncarusPlugin;
@@ -34,13 +34,13 @@ public class CompareAction extends SyncViewAction {
 	 */
 	@Override
 	public void run() {
-		if (!DiffControl.isInitialized()) {
+		if (!DiffController.isInitialized()) {
 			MessageDialog.openInformation(null, "No paths set",
 					"First you have to define locations A and B before comparing their content!");
 			return;
 		}
 
-		if (!DiffControl.aquireLock()) {
+		if (!DiffController.aquireLock()) {
 			MessageDialog.openWarning(null, "Application is busy",
 					"The requested operation cannot be executed due to other currently running operations!");
 			return;
@@ -51,18 +51,18 @@ public class CompareAction extends SyncViewAction {
 						null,
 						"Data set comparison",
 						"The following action will remove all non-synchronized changes done to the difference-tree.\n\nIt may take several minutes depending on the size of the data sets.\nDo you want to proceed?")) {
-			DiffControl.releaseLock();
+			DiffController.releaseLock();
 			return;
 		}
 
-		DiffControl.syncTimestamps = MessageDialog
+		DiffController.syncTimestamps = MessageDialog
 				.openQuestion(
 						null,
 						"Timestamp synchronization",
 						"Should the file comparison process implicitly synchronize timestamps?\nThis will set the timestamp of files in location A equal to the timestamp of files in location B if their content is equal.");
-		DiffControl.syncTimestampsWithoutChecksum = false;
-		if (DiffControl.syncTimestamps)
-			DiffControl.syncTimestampsWithoutChecksum = MessageDialog
+		DiffController.syncTimestampsWithoutChecksum = false;
+		if (DiffController.syncTimestamps)
+			DiffController.syncTimestampsWithoutChecksum = MessageDialog
 					.openQuestion(
 							null,
 							"Timestamp synchronization",
@@ -70,11 +70,11 @@ public class CompareAction extends SyncViewAction {
 
 		ProgressMonitorDialog pmd = new ProgressMonitorDialog(PlatformUI.getWorkbench().getDisplay().getActiveShell());
 		try {
-			DiffControl.LOG.add("Starting directory comparison.");
+			DiffController.LOG.add("Starting directory comparison.");
 			pmd.run(true, true, new DiffTask(getSyncView()));
-			DiffControl.LOG.add("Finished directory comparison.");
+			DiffController.LOG.add("Finished directory comparison.");
 		} catch (Exception e) {
-			DiffControl.LOG.add("Directory comparison failed.");
+			DiffController.LOG.add("Directory comparison failed.");
 			SyncarusPlugin.logError("Scheduling the comparison-task failed", e);
 		}
 	}

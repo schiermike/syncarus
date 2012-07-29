@@ -2,7 +2,6 @@ package net.syncarus.gui;
 
 import java.io.File;
 
-import net.syncarus.core.DiffControl;
 import net.syncarus.model.DiffNode;
 import net.syncarus.rcp.ResourceRegistry;
 import net.syncarus.rcp.SyncarusPlugin;
@@ -30,40 +29,40 @@ public class NodeInfoComposite extends Composite {
 		
 		switch (node.getStatus()) {
 		case COPY_TO_A:
-			addFileInfo(DiffControl.toFileB(node), green);
+			addFileInfo(node.getAbsoluteFileB(), green);
 			addLabel("will be copied to side A.");
 			break;
 		case COPY_TO_B:
-			addFileInfo(DiffControl.toFileA(node), green);
+			addFileInfo(node.getAbsoluteFileA(), green);
 			addLabel("will be copied to side B.");
 			break;
 		case REMOVE_FROM_A:
-			addFileInfo(DiffControl.toFileA(node), red);
+			addFileInfo(node.getAbsoluteFileA(), red);
 			addLabel("will be removed.");
 			break;
 		case REMOVE_FROM_B:
-			addFileInfo(DiffControl.toFileB(node), red);
+			addFileInfo(node.getAbsoluteFileB(), red);
 			addLabel("will be removed.");
 			break;
 		case REPLACE_A:
-			addFileInfo(DiffControl.toFileA(node), red);
+			addFileInfo(node.getAbsoluteFileA(), red);
 			addLabel("will be replaced by");
-			addFileInfo(DiffControl.toFileB(node), green);
+			addFileInfo(node.getAbsoluteFileB(), green);
 			break;
 		case REPLACE_B:
-			addFileInfo(DiffControl.toFileB(node), red);
+			addFileInfo(node.getAbsoluteFileB(), red);
 			addLabel("will be replaced by");
-			addFileInfo(DiffControl.toFileA(node), green);
+			addFileInfo(node.getAbsoluteFileA(), green);
 			break;
 		case CONFLICT:
-			addFileInfo(DiffControl.toFileA(node), orange);
+			addFileInfo(node.getAbsoluteFileA(), orange);
 			addLabel("Cannot determine which file is newer!");
-			addFileInfo(DiffControl.toFileB(node), orange);
+			addFileInfo(node.getAbsoluteFileB(), orange);
 			break;
 		case TOUCH:
-			addFileInfo(DiffControl.newerFile(node), red);
+			addFileInfo(node.getNewerFile(), red);
 			addLabel("will have the same modification date as");
-			addFileInfo(DiffControl.olderFile(node), green);
+			addFileInfo(node.getOlderFile(), green);
 			break;
 		default:
 			throw new IllegalArgumentException("Cannot display DiffStatus " + node.getStatus() + " in DiffPropertiesView");

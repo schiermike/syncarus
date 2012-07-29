@@ -1,6 +1,6 @@
 package net.syncarus.action;
 
-import net.syncarus.core.DiffControl;
+import net.syncarus.core.DiffController;
 import net.syncarus.core.SyncTask;
 import net.syncarus.rcp.ResourceRegistry;
 import net.syncarus.rcp.SyncarusPlugin;
@@ -27,7 +27,7 @@ public class SyncAction extends SyncViewAction
 	@Override
 	public void run()
 	{
-		if (!DiffControl.aquireLock())
+		if (!DiffController.aquireLock())
 		{
 			MessageDialog.openWarning(null, "Application is busy", "The requested operation cannot be executed due to other currently running operations!");
 			return;
@@ -35,7 +35,7 @@ public class SyncAction extends SyncViewAction
 
 		if (!MessageDialog.openConfirm(null, "Data set synchronization", "The following action will synchronize all checked nodes in the differences-tree\n\nDepending on the selection, this action may take up to several minutes!\nDo you want to proceed?"))
 		{
-			DiffControl.releaseLock();
+			DiffController.releaseLock();
 			return;
 		}
 
@@ -44,15 +44,15 @@ public class SyncAction extends SyncViewAction
 			ProgressMonitorDialog pmd = new ProgressMonitorDialog(PlatformUI.getWorkbench().getDisplay().getActiveShell());
 			SyncTask job = new SyncTask(getSyncView(), getCheckedElements());
 			
-			DiffControl.LOG.add("Starting synchronization process.");
+			DiffController.LOG.add("Starting synchronization process.");
 			pmd.run(true, true, job);
-			DiffControl.LOG.add("Finished synchronization process.");
+			DiffController.LOG.add("Finished synchronization process.");
 			
 			new CompareAction().run();
 		}
 		catch (Exception e)
 		{
-			DiffControl.LOG.add("Synchronization process failed.");
+			DiffController.LOG.add("Synchronization process failed.");
 			SyncarusPlugin.logError("Scheduling the synchronisation-task failed", e);
 		}
 	}

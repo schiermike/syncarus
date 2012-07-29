@@ -37,9 +37,9 @@ public class DirSelectWizard extends Wizard {
 	public DirSelectWizard() {
 		File rootADir = null;
 		File rootBDir = null;
-		if (DiffControl.isInitialized()) {
-			rootADir = new File(DiffControl.rootA);
-			rootBDir = new File(DiffControl.rootB);
+		if (DiffController.isInitialized()) {
+			rootADir = DiffController.getRootDiffNode().getAbsoluteFileA();
+			rootBDir = DiffController.getRootDiffNode().getAbsoluteFileB();
 		}
 
 		ResourceRegistry rr = SyncarusPlugin.getInstance().getResourceRegistry();
@@ -107,12 +107,12 @@ public class DirSelectWizard extends Wizard {
 	}
 
 	/**
-	 * Initialises the {@link DiffControl} with the two new paths and starts the
+	 * Initialises the {@link DiffController} with the two new paths and starts the
 	 * Differentiation process via running the appropriate action
 	 */
 	@Override
 	public boolean performFinish() {
-		DiffControl.initialize(rootASelectPage.getDir(), rootBSelectPage.getDir());
+		DiffController.initialize(rootASelectPage.getDir(), rootBSelectPage.getDir());
 		return true;
 	}
 }

@@ -39,7 +39,7 @@ public class DiffTask implements IRunnableWithProgress {
 			if (ioException != null) {
 				MessageDialog.openWarning(null, "Differentiation stopped",
 						"Errors occured: " + ioException.getMessage());
-			} else if (!DiffControl.getRootDiffNode().hasChildren() && !monitor.isCanceled())
+			} else if (!DiffController.getRootDiffNode().hasChildren() && !monitor.isCanceled())
 				MessageDialog.openInformation(null, "Differentiation finished", "No changes have been found!");
 		}
 	}
@@ -63,7 +63,7 @@ public class DiffTask implements IRunnableWithProgress {
 	 */
 	@Override
 	public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
-		if (!DiffControl.isInitialized())
+		if (!DiffController.isInitialized())
 			return;
 		try {
 			// hold the monitor in a class-variable to be accessible in the
@@ -72,25 +72,25 @@ public class DiffTask implements IRunnableWithProgress {
 			monitor.beginTask("Differentiaton", WORK_MAX);
 
 			monitor.subTask("Calculating size of datasets to compare");
-			DiffControl.LOG.add("Calculating size of datasets to compare");
-			filesTotal = FileOperation.totalNumOfFiles(DiffControl.toFileA(File.separator));
+			DiffController.LOG.add("Calculating size of datasets to compare");
+			filesTotal = FileOperation.totalNumOfFiles(DiffController.getRootDiffNode().getAbsoluteFileA());
 
-			DiffControl.LOG.add("Comparing directories");
+			DiffController.LOG.add("Comparing directories");
 			monitor.subTask("Comparison of locations A and B");
 
 			GuiRefresher guiRefresher = new GuiRefresher();
 
 			try {
-				DiffControl.resetRootDiffNode();
-				buildDiffTreeRecursively(File.separator, DiffControl.getRootDiffNode());
+				DiffController.resetRootDiffNode();
+				buildDiffTreeRecursively(DiffController.getRootDiffNode());
 				monitor.done();
 			} catch (CancelationException e) {
 				// Differentiation was aborted - remove loose clean nodes - it
 				// is very likely that such nodes exist after an exception
-				DiffControl.cleanupDiffTree();
+				DiffController.cleanupDiffTree();
 			} catch (IOException e) {
 				guiRefresher.setException(e);
-				DiffControl.cleanupDiffTree();
+				DiffController.cleanupDiffTree();
 			}
 
 			// report result
@@ -98,7 +98,7 @@ public class DiffTask implements IRunnableWithProgress {
 		} catch (RuntimeException e) {
 			SyncarusPlugin.logError("Exception occured during differenation process.", e);
 		} finally {
-			DiffControl.releaseLock();
+			DiffController.releaseLock();
 		}
 	}
 
@@ -112,15 +112,14 @@ public class DiffTask implements IRunnableWithProgress {
 	 * them again after the recursion when there were no differences i.e. when
 	 * no children were appended.
 	 * 
-	 * @param relativePath
 	 * @param localNode
 	 */
-	private void buildDiffTreeRecursively(String relativePath, DiffNode localNode) throws CancelationException,
+	private void buildDiffTreeRecursively(DiffNode localNode) throws CancelationException,
 			IOException {
 		Set<String> pathBSet = new HashSet<String>();
 
-		File dirA = DiffControl.toFileA(relativePath);
-		File dirB = DiffControl.toFileB(relativePath);
+		File dirA = localNode.getAbsoluteFileA();
+		File dirB = localNode.getAbsoluteFileB();
 
 		// null denotes an I/O error
 		if (dirA.listFiles() == null)
@@ -132,13 +131,13 @@ public class DiffTask implements IRunnableWithProgress {
 
 		// copy all children of localRootRight to a HashMap
 		for (File childB : dirB.listFiles()) {
-			String relativePathChild = DiffControl.getRelativePath(childB);
+			String relativePathChild = localNode.getRelativePath() + File.separator + childB.getName();
 			pathBSet.add(relativePathChild);
 		}
 
 		for (File childA : dirA.listFiles()) {
-			String relativePathChild = DiffControl.getRelativePath(childA);
-			if (!DiffControl.fileFilter.isValid(childA.getName()))
+			String relativePathChild = localNode.getRelativePath() + File.separator + childA.getName();
+			if (!DiffController.fileFilter.isValid(childA.getName()))
 				continue;
 
 			if (!pathBSet.contains(relativePathChild)) {
@@ -150,20 +149,20 @@ public class DiffTask implements IRunnableWithProgress {
 				// remove that file/folder from the location B map because it is also
 				// in location A
 				pathBSet.remove(relativePathChild);
-				File childB = DiffControl.toFileB(relativePathChild);
+				File childB = new File(localNode.getAbsoluteFileB(), childA.getName());
 
 				if (childA.isDirectory()) {
 					// add a node with status clean and exec the recursion on
 					// this folder
 					DiffNode childNode = localNode.createChildNode(relativePathChild, true, DiffStatus.CLEAN);
-					buildDiffTreeRecursively(relativePathChild, childNode);
+					buildDiffTreeRecursively(childNode);
 					// when there were no differences - no subNodes were created
 					// and this node is removed again
 					if (!childNode.hasChildren())
 						localNode.removeChildNode(childNode);
 				} else {
 					DiffStatus status = compareFiles(childA, childB);
-					if (DiffControl.syncTimestamps && status == DiffStatus.TOUCH) {
+					if (DiffController.syncTimestamps && status == DiffStatus.TOUCH) {
 						File oldFile, newFile;
 						if (childA.lastModified() < childB.lastModified()) {
 							oldFile = childA;
@@ -184,8 +183,8 @@ public class DiffTask implements IRunnableWithProgress {
 
 		// add remaining file from side B to the difference-tree
 		for (String relativePathChild : pathBSet) {
-			File childB = DiffControl.toFileB(relativePathChild);
-			if (!DiffControl.fileFilter.isValid(childB.getName()))
+			File childB = new File(localNode.getRoot().getAbsoluteFileB(), relativePathChild);
+			if (!DiffController.fileFilter.isValid(childB.getName()))
 				continue;
 
 			localNode.createChildNode(relativePathChild, childB.isDirectory(), DiffStatus.REMOVE_FROM_B);
@@ -194,7 +193,7 @@ public class DiffTask implements IRunnableWithProgress {
 
 	private DiffStatus compareFiles(File fileA, File fileB) throws IOException {
 		if (fileA.length() == fileB.length() && fileA.lastModified() != fileB.lastModified()
-				&& DiffControl.syncTimestampsWithoutChecksum)
+				&& DiffController.syncTimestampsWithoutChecksum)
 			return DiffStatus.TOUCH;
 
 		if (fileA.lastModified() < fileB.lastModified()) {

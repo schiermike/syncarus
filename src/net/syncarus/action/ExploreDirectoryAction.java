@@ -2,7 +2,6 @@ package net.syncarus.action;
 
 import java.io.IOException;
 
-import net.syncarus.core.DiffControl;
 import net.syncarus.gui.SyncTreeViewer;
 import net.syncarus.model.DiffNode;
 import net.syncarus.model.DiffStatus;
@@ -50,9 +49,9 @@ public class ExploreDirectoryAction extends SyncViewAction {
 
 		// get path and convert it to an UNC path for windows to execute
 		if (isSideAAction)
-			exec(DiffControl.toFileA(node).getAbsolutePath());
+			exec(node.getAbsolutePathA());
 		else
-			exec(DiffControl.toFileB(node).getAbsolutePath());
+			exec(node.getAbsolutePathB());
 	}
 
 	private void exec(String path) {

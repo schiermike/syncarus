@@ -10,12 +10,8 @@ import net.syncarus.model.SyncException;
  * This controller is responsible for providing a lock mechanism to
  * avoid having multiple jobs running at the same time.
  */
-public class DiffControl {
-	// '/'-separated paths
-	public static String rootA = null;
-	public static String rootB = null;
-
-	private static DiffNode rootDiffNode = null;
+public class DiffController {
+	private static DiffNode rootDiffNode;
 
 	private static boolean actionLock = false;
 	public static FileFilter fileFilter;
@@ -58,11 +54,7 @@ public class DiffControl {
 	 * @return true on success, else false
 	 */
 	public static boolean isInitialized() {
-		if (rootA == null || rootB == null)
-			return false;
-		if (!new File(rootA).exists() || !new File(rootB).exists())
-			return false;
-		return true;
+		return rootDiffNode != null;
 	}
 
 	/**
@@ -74,18 +66,8 @@ public class DiffControl {
 	 * @param rootBDir
 	 */
 	public static void initialize(File rootADir, File rootBDir) {
-		// reformat path-string using '/' as separator char
-		rootA = rootADir.getAbsolutePath();
-		if (rootA.endsWith(File.separator)) // remove trailing '/'
-			rootA = rootA.substring(0, rootA.length() - 1);
-
-		rootB = rootBDir.getAbsolutePath();
-		if (rootB.endsWith(File.separator))
-			rootB = rootB.substring(0, rootB.length() - 1);
-
-		LOG.add("rootA='" + rootA + "', rootB='" + rootB + "'");
-
-		resetRootDiffNode();
+		rootDiffNode = new DiffNode(rootADir, rootBDir);
+		LOG.add("rootA='" + rootDiffNode.getAbsolutePathA() + "', rootB='" + rootDiffNode.getAbsolutePathB() + "'");
 	}
 
 	/**
@@ -93,70 +75,15 @@ public class DiffControl {
 	 * <code>rootDiffNode</code> for a new differentiation process.
 	 */
 	public static void resetRootDiffNode() {
-		if (!isInitialized())
-			throw new SyncException(SyncException.FILE_COMPARISON, "Selecting the locations failed!\n" + 
-					"Location A: " + (rootA==null ? "not set" : rootA.toString()) + "\n" + 
-					"Location B: " + (rootB==null ? "not set" : rootB.toString()));
-		rootDiffNode = new DiffNode();
+		rootDiffNode = new DiffNode(rootDiffNode.getAbsoluteFileA(), rootDiffNode.getAbsoluteFileB());
 	}
 
 	/**
-	 * converts the absolute path of a file to a relative path using the paths
-	 * of rootA and rootB as a base. <br>
-	 * The relative path must either be empty or be of the form "/bla/ble". "/"
-	 * or "bla/bli" or "/bla/lib/blu/" are not allowed
-	 * 
-	 * @param absolutePath
-	 *            a file/folder being a sub-element of root path A or B
-	 * @throws SyncException
-	 *             when <code>file</code> isn't a subfile/sub-folder of either 
-	 *             root path A or B
-	 * @return the relative path of the <code>file</code>
-	 */
-	public static String getRelativePath(String absolutePath) {
-		String relativePath;
-		if (FileOperation.isSubdirectory(rootA, absolutePath)) {
-			relativePath = absolutePath.substring(rootA.length());
-		} else if (FileOperation.isSubdirectory(rootB, absolutePath)) {
-			relativePath = absolutePath.substring(rootB.length());
-		} else
-			throw new SyncException(SyncException.PATH_EXCEPTION, "Error when trying to associate the path '"
-					+ absolutePath + "' to one synchronization side!");
-
-		// now, the path has to have a '/' followed by a path or nothing
-		if (!relativePath.startsWith(File.separator))
-			throw new SyncException(SyncException.PATH_EXCEPTION, "Strange path format detected: '" + relativePath
-					+ "'!");
-
-		return relativePath;
-	}
-
-	public static String getRelativePath(File file) {
-		return getRelativePath(file.getAbsolutePath());
-	}
-
-	/**
-	 * @return the current rootDiffNode or null, when {@link DiffControl} hasn't
+	 * @return the current rootDiffNode or null, when {@link DiffController} hasn't
 	 *         been initialised.
 	 */
 	public static DiffNode getRootDiffNode() {
 		return rootDiffNode;
-	}
-
-	public static File toFileA(DiffNode node) {
-		return toFileA(node.getRelativePath());
-	}
-
-	public static File toFileA(String relativePath) {
-		return new File(rootA + relativePath);
-	}
-
-	public static File toFileB(DiffNode node) {
-		return toFileB(node.getRelativePath());
-	}
-
-	public static File toFileB(String relativePath) {
-		return new File(rootB + relativePath);
 	}
 
 	/**
@@ -199,13 +126,5 @@ public class DiffControl {
 			return true;
 		}
 		return false;
-	}
-
-	public static File newerFile(DiffNode node) {
-		return toFileA(node).lastModified() < toFileB(node).lastModified() ? toFileB(node) : toFileA(node);
-	}
-
-	public static File olderFile(DiffNode node) {
-		return toFileA(node).lastModified() > toFileB(node).lastModified() ? toFileB(node) : toFileA(node);
 	}
 }

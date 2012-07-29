@@ -1,7 +1,7 @@
 package net.syncarus.action.log;
 
 import net.syncarus.action.SyncarusAction;
-import net.syncarus.core.DiffControl;
+import net.syncarus.core.DiffController;
 import net.syncarus.rcp.ResourceRegistry;
 
 public class ClearAction extends SyncarusAction {
@@ -14,6 +14,6 @@ public class ClearAction extends SyncarusAction {
 
 	@Override
 	public void run() {
-		DiffControl.LOG.clear();
+		DiffController.LOG.clear();
 	}
 }

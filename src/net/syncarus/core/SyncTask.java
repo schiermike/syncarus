@@ -96,7 +96,7 @@ public class SyncTask implements IRunnableWithProgress {
 			// Synchronise selected nodes and destroy processed nodes afterwards
 			synchronize(diffNodeList);
 			// now remove CLEAN directories having no children
-			DiffControl.cleanupDiffTree();
+			DiffController.cleanupDiffTree();
 			monitor.done();
 
 			guiRefresher.messageType = 0;
@@ -119,7 +119,7 @@ public class SyncTask implements IRunnableWithProgress {
 			return;
 		} finally {
 			PlatformUI.getWorkbench().getDisplay().syncExec(guiRefresher);
-			DiffControl.releaseLock();
+			DiffController.releaseLock();
 		}
 	}
 
@@ -135,7 +135,7 @@ public class SyncTask implements IRunnableWithProgress {
 			switch (node.getStatus()) {
 			case COPY_TO_A:
 			case REPLACE_A:
-				File fileB = DiffControl.toFileB(node);
+				File fileB = node.getAbsoluteFileB();
 				if (fileB.isFile())
 					numOfBytesTotal += fileB.length();
 				else
@@ -143,7 +143,7 @@ public class SyncTask implements IRunnableWithProgress {
 				break;
 			case COPY_TO_B:
 			case REPLACE_B:
-				File fileA = DiffControl.toFileA(node);
+				File fileA = node.getAbsoluteFileA();
 				if (fileA.isFile())
 					numOfBytesTotal += fileA.length();
 				else
@@ -170,8 +170,8 @@ public class SyncTask implements IRunnableWithProgress {
 					|| (node.getStatus() == DiffStatus.UNKNOWN))
 				continue;
 
-			File fileA = DiffControl.toFileA(node);
-			File fileB = DiffControl.toFileB(node);
+			File fileA = node.getAbsoluteFileA();
+			File fileB = node.getAbsoluteFileB();
 			// process all other nodes
 			switch (node.getStatus()) {
 			case COPY_TO_A:
@@ -217,13 +217,13 @@ public class SyncTask implements IRunnableWithProgress {
 				break;
 
 			case REMOVE_FROM_A:
-				DiffControl.LOG.add("Deleting '" + fileA.getAbsolutePath() + "'");
+				DiffController.LOG.add("Deleting '" + fileA.getAbsolutePath() + "'");
 				FileUtils.forceDelete(fileA);
 				node.remove();
 				break;
 
 			case REMOVE_FROM_B:
-				DiffControl.LOG.add("Deleting '" + fileB.getAbsolutePath() + "'");
+				DiffController.LOG.add("Deleting '" + fileB.getAbsolutePath() + "'");
 				FileUtils.forceDelete(fileB);
 				node.remove();
 				break;
@@ -236,7 +236,7 @@ public class SyncTask implements IRunnableWithProgress {
 	}
 
 	public static void touchFile(File oldFile, File newFile) {
-		DiffControl.LOG.add("Touching file '" + oldFile.getAbsolutePath() + "'");
+		DiffController.LOG.add("Touching file '" + oldFile.getAbsolutePath() + "'");
 
 		boolean changedWritePerms = false;
 		if (!newFile.canWrite()) {

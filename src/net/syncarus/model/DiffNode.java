@@ -6,10 +6,10 @@ import java.util.List;
 
 /**
  * This class is used to build up a tree handling the detected differences
- * between both locations. Differences are encoded using predefined
- * static int codes. The tree consists of DiffNodes which stand for single
- * folders whereas the fileMaps hold (string,int)-pairs which define the files
- * in the folder (relative-path, code).
+ * between both locations. Differences are encoded using predefined static int
+ * codes. The tree consists of DiffNodes which stand for single folders whereas
+ * the fileMaps hold (string,int)-pairs which define the files in the folder
+ * (relative-path, code).
  */
 public class DiffNode implements Comparable<DiffNode> {
 	private final DiffNode parent;
@@ -18,13 +18,37 @@ public class DiffNode implements Comparable<DiffNode> {
 	private final List<DiffNode> children = new ArrayList<DiffNode>();
 	private DiffStatus status = DiffStatus.UNKNOWN;
 
+	// is determined when required
+	private DiffNode root;
+	private String absolutePathA;
+	private String absolutePathB;
+
 	/**
 	 * Constructor is used to initialise root-Nodes without parents
 	 */
-	public DiffNode() {
+	public DiffNode(String rootPathA, String rootPathB) {
+		this(new File(rootPathA), new File(rootPathB));
+	}
+
+	public DiffNode(File rootPathA, File rootPathB) {
 		parent = null;
 		isDirectory = true;
 		relativePath = File.separator;
+
+		if (!rootPathA.isDirectory() || !rootPathA.canWrite())
+			throw new SyncException(SyncException.PATH_EXCEPTION, "Location A does not exist or is not writable.");
+
+		if (!rootPathB.isDirectory() || !rootPathB.canWrite())
+			throw new SyncException(SyncException.PATH_EXCEPTION, "Location B does not exist or is not writable.");
+
+		absolutePathA = rootPathA.getAbsolutePath();
+		if (absolutePathA.endsWith(File.separator)) // remove trailing '/'
+			absolutePathA = absolutePathA.substring(0, absolutePathA.length() - 1);
+
+		absolutePathB = rootPathB.getAbsolutePath();
+		if (absolutePathB.endsWith(File.separator))
+			absolutePathB = absolutePathB.substring(0, absolutePathB.length() - 1);
+
 	}
 
 	/**
@@ -59,7 +83,8 @@ public class DiffNode implements Comparable<DiffNode> {
 	}
 
 	/**
-	 * @return Returns true if either file object A or B  (depending on the state) is a directory
+	 * @return Returns true if either file object A or B (depending on the
+	 *         state) is a directory
 	 */
 	public boolean isDirectory() {
 		return isDirectory;
@@ -175,5 +200,55 @@ public class DiffNode implements Comparable<DiffNode> {
 	@Override
 	public int compareTo(DiffNode other) {
 		return relativePath.compareToIgnoreCase(other.getRelativePath());
+	}
+
+	public DiffNode getRoot() {
+		if (root == null) {
+			DiffNode node = this;
+			while (node.parent != null)
+				node = node.parent;
+			root = node;
+		}
+		return root;
+	}
+
+	public String getAbsolutePathA() {
+		if (absolutePathA == null) {
+			absolutePathA = getRoot().getAbsolutePathA();
+			if (absolutePathA == null)
+				throw new IllegalStateException("The absolute path A of the root node is not set.");
+			absolutePathA += relativePath;
+		}
+		return absolutePathA;
+	}
+
+	public String getAbsolutePathB() {
+		if (absolutePathB == null) {
+			absolutePathB = getRoot().getAbsolutePathB();
+			if (absolutePathB == null)
+				throw new IllegalStateException("The absolute path B of the root node is not set.");
+			absolutePathB += relativePath;
+		}
+		return absolutePathB;
+	}
+
+	public File getAbsoluteFileA() {
+		return new File(getAbsolutePathA());
+	}
+
+	public File getAbsoluteFileB() {
+		return new File(getAbsolutePathB());
+	}
+
+	public File getNewerFile() {
+		File a = getAbsoluteFileA();
+		File b = getAbsoluteFileB();
+		return a.lastModified() > b.lastModified() ? a : b;
+	}
+	
+	public File getOlderFile() {
+		File a = getAbsoluteFileA();
+		File b = getAbsoluteFileB();
+		return a.lastModified() < b.lastModified() ? a : b;
 	}
 }

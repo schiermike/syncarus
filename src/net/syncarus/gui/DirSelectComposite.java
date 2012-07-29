@@ -6,7 +6,7 @@ import java.util.List;
 
 import javax.swing.filechooser.FileSystemView;
 
-import net.syncarus.core.DiffControl;
+import net.syncarus.core.DiffController;
 import net.syncarus.rcp.ResourceRegistry;
 import net.syncarus.rcp.SyncarusPlugin;
 
@@ -68,7 +68,7 @@ public class DirSelectComposite extends Composite {
 				setCurrentDirectory(((EncapsulatedFile) selection.getFirstElement()).getFile());
 			}
 		});
-		setCurrentDirectory(DiffControl.getDefaultDirectory());
+		setCurrentDirectory(DiffController.getDefaultDirectory());
 	}
 
 	/**

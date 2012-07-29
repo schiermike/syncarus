@@ -56,7 +56,7 @@ public class FileOperation {
 	 */
 	private static void copyFile(File sourceFile, File targetFile, SyncTask runnable) throws IOException,
 			CancelationException {
-		DiffControl.LOG.add("Copying file '" + sourceFile.getName() + "'");
+		DiffController.LOG.add("Copying file '" + sourceFile.getName() + "'");
 
 		if (targetFile.exists())
 			targetFile.delete();
@@ -75,7 +75,7 @@ public class FileOperation {
 			} catch (CancelationException e) {
 				fis.close();
 				fos.close();
-				DiffControl.LOG.add("Aborted copy process - deleting file '" + sourceFile.getName() + "'");
+				DiffController.LOG.add("Aborted copy process - deleting file '" + sourceFile.getName() + "'");
 				// avoid having "half" files which are useless
 				targetFile.delete();
 				throw e;

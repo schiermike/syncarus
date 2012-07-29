@@ -5,7 +5,7 @@ import java.util.Date;
 
 import net.syncarus.action.log.ClearAction;
 import net.syncarus.action.log.SwitchAction;
-import net.syncarus.core.DiffControl;
+import net.syncarus.core.DiffController;
 import net.syncarus.core.Log;
 import net.syncarus.rcp.ResourceRegistry;
 import net.syncarus.rcp.SyncarusPlugin;
@@ -41,7 +41,7 @@ public class LogView extends ViewPart implements Log.ChangeListener {
 
 		initializeToolBar();
 
-		DiffControl.LOG.addListener(this);
+		DiffController.LOG.addListener(this);
 	}
 
 	@Override
@@ -65,7 +65,7 @@ public class LogView extends ViewPart implements Log.ChangeListener {
 
 	@Override
 	public void dispose() {
-		DiffControl.LOG.removeListener(this);
+		DiffController.LOG.removeListener(this);
 		super.dispose();
 	}
 
