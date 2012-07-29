@@ -2,7 +2,6 @@ package net.syncarus.rcp;
 
 import java.io.File;
 
-import net.syncarus.core.DiffController;
 import net.syncarus.core.FileFilter;
 import net.syncarus.gui.SyncView;
 import net.syncarus.model.SyncException;
@@ -56,7 +55,7 @@ public class ApplicationWorkbenchAdvisor extends WorkbenchAdvisor {
 
 	@Override
 	public void postStartup() {
-		DiffController.fileFilter = new FileFilter(SyncarusPlugin.getInstance().getPreferenceStore());
+		getPlugin().setFileFilter(new FileFilter(SyncarusPlugin.getInstance().getPreferenceStore()));
 
 		IDialogSettings dialogSettings = SyncarusPlugin.getInstance().getDialogSettings();
 		IDialogSettings pathSection = dialogSettings.getSection(SETTINGS_PATHS);
@@ -65,7 +64,7 @@ public class ApplicationWorkbenchAdvisor extends WorkbenchAdvisor {
 			String rootBPath = pathSection.get(SETTINGS_ROOT_B_PATH);
 			if (rootAPath != null && rootBPath != null)
 				try {
-					DiffController.initialize(new File(rootAPath), new File(rootBPath));
+					getPlugin().initialize(new File(rootAPath), new File(rootBPath));
 				} catch (SyncException e) {
 					MessageDialog.openError(null, "Location error", e.getMessage());
 				}
@@ -84,12 +83,16 @@ public class ApplicationWorkbenchAdvisor extends WorkbenchAdvisor {
 	public boolean preShutdown() {
 		IDialogSettings dialogSettings = SyncarusPlugin.getInstance().getDialogSettings();
 		IDialogSettings pathSection = dialogSettings.getSection(SETTINGS_PATHS);
-		if (DiffController.isInitialized()) {
+		if (getPlugin().isInitialized()) {
 			if (pathSection == null)
 				pathSection = dialogSettings.addNewSection(SETTINGS_PATHS);
-			pathSection.put(SETTINGS_ROOT_A_PATH, DiffController.getRootDiffNode().getAbsolutePathA());
-			pathSection.put(SETTINGS_ROOT_B_PATH, DiffController.getRootDiffNode().getAbsolutePathB());
+			pathSection.put(SETTINGS_ROOT_A_PATH, getPlugin().getRootNode().getAbsolutePathA());
+			pathSection.put(SETTINGS_ROOT_B_PATH, getPlugin().getRootNode().getAbsolutePathB());
 		}
 		return super.preShutdown();
+	}
+	
+	private SyncarusPlugin getPlugin() {
+		return SyncarusPlugin.getInstance();
 	}
 }

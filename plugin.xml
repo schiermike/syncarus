@@ -17,7 +17,6 @@
       <perspective
             class="net.syncarus.rcp.Perspective"
             fixed="true"
-            icon="icons/synch.gif"
             id="net.syncarus.rcp.Perspective"
             name="Main Perspective">
       </perspective>

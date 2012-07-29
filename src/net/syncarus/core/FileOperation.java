@@ -7,6 +7,7 @@ import java.io.IOException;
 
 import net.syncarus.model.CancelationException;
 import net.syncarus.model.SyncException;
+import net.syncarus.rcp.SyncarusPlugin;
 
 import org.apache.commons.io.FileUtils;
 
@@ -56,7 +57,7 @@ public class FileOperation {
 	 */
 	private static void copyFile(File sourceFile, File targetFile, SyncTask runnable) throws IOException,
 			CancelationException {
-		DiffController.LOG.add("Copying file '" + sourceFile.getName() + "'");
+		SyncarusPlugin.getInstance().getProtocol().add("Copying file '" + sourceFile.getName() + "'");
 
 		if (targetFile.exists())
 			targetFile.delete();
@@ -75,7 +76,7 @@ public class FileOperation {
 			} catch (CancelationException e) {
 				fis.close();
 				fos.close();
-				DiffController.LOG.add("Aborted copy process - deleting file '" + sourceFile.getName() + "'");
+				SyncarusPlugin.getInstance().getProtocol().add("Aborted copy process - deleting file '" + sourceFile.getName() + "'");
 				// avoid having "half" files which are useless
 				targetFile.delete();
 				throw e;
@@ -164,5 +165,15 @@ public class FileOperation {
 		if (child.charAt(parent.length()) == File.separatorChar)
 			return true;
 		return false;
+	}
+	
+	public static File getDefaultDirectory() {
+		if (File.listRoots().length == 0)
+			throw new SyncException(SyncException.FILE_OPERATION_EXCEPTION, "No filesystem roots are available!");
+		if (File.listRoots().length >= 2)
+			return (File.listRoots()[1]); // don't select floppy drive, this is
+											// usually the first one
+
+		return File.listRoots()[0];
 	}
 }

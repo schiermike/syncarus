@@ -148,6 +148,27 @@ public class DiffNode implements Comparable<DiffNode> {
 	public DiffNode getParent() {
 		return parent;
 	}
+	
+	/**
+	 * Remove this node and/or all child nodes that have the status {@link DiffStatus#CLEAN}.
+	 * @return true, when this node was deleted, else false
+	 */
+	public boolean clean() {
+		// important: childNode.selfDestruction() also removes itself from list
+		// -> index has to decremented
+		if (hasChildren())
+			for (int i = 0; i < getChildren().size(); i++)
+				if (getChildren().get(i).clean())
+					i--;
+
+		// if node has no children (this may happen after recursion step) and it
+		// is clean, remove it
+		if (!hasChildren() && getStatus() == DiffStatus.CLEAN) {
+			remove();
+			return true;
+		}
+		return false;
+	}
 
 	@Override
 	public String toString() {

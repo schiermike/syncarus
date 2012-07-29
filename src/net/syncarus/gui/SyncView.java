@@ -3,6 +3,9 @@ package net.syncarus.gui;
 import net.syncarus.action.tree.CheckAllAction;
 import net.syncarus.action.tree.CollapseAction;
 import net.syncarus.action.tree.ExpandAction;
+import net.syncarus.core.Protocol;
+import net.syncarus.model.SyncException;
+import net.syncarus.rcp.SyncarusPlugin;
 
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IToolBarManager;
@@ -21,6 +24,7 @@ public class SyncView extends ViewPart {
 	private Action unCheckAllNodesAction;
 	private Action collapseTreeAction;
 	private Action expandTreeAction;
+	private boolean actionLock = false;
 
 	public static final String ID = "net.syncarus.gui.SyncView";
 
@@ -70,8 +74,44 @@ public class SyncView extends ViewPart {
 	public SyncTreeViewer getViewer() {
 		return viewer;
 	}
+	
+	public SyncarusPlugin getPlugin() {
+		return SyncarusPlugin.getInstance();
+	}
+	
+	public Protocol getProtocol() {
+		return getPlugin().getProtocol();
+	}
 
 	public void update() {
-		viewer.update();
+		viewer.update(getPlugin().getRootNode());
+	}
+	
+	/**
+	 * acquire the UI-Lock needed for long-running jobs - there is only one of
+	 * these jobs allowed at the same time
+	 * 
+	 * @return <code>true</code> on success, else <code>false</code> when
+	 *         another job holds the lock
+	 */
+	public synchronized boolean aquireLock() {
+		if (actionLock)
+			return false;
+		actionLock = true;
+		return true;
+	}
+
+	/**
+	 * release an acquired lock of a job
+	 * 
+	 * @see #aquireLock()
+	 * @throws SyncException
+	 *             when the lock has already been released
+	 */
+	public synchronized void releaseLock() {
+		if (!actionLock)
+			throw new SyncException(SyncException.THREAD_EXCEPTION,
+					"Couldn't release lock because it has already been released before!");
+		actionLock = false;
 	}
 }

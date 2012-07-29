@@ -3,7 +3,6 @@ package net.syncarus.gui;
 import net.syncarus.action.ExploreDirectoryAction;
 import net.syncarus.action.tree.FlipCheckStatusAction;
 import net.syncarus.action.tree.SwitchStatusAction;
-import net.syncarus.core.DiffController;
 import net.syncarus.model.DiffNode;
 import net.syncarus.model.SyncException;
 import net.syncarus.rcp.ResourceRegistry;
@@ -203,10 +202,11 @@ public class SyncTreeViewer extends CheckboxTreeViewer {
 
 	/**
 	 * sets a new rootNode in the tree viewer and refreshs the status bar
+	 * @param rootNode 
 	 */
-	public void update() {
+	public void update(DiffNode rootNode) {
 		setSelection(new StructuredSelection());
-		setInput(DiffController.getRootDiffNode());
+		setInput(rootNode);
 	}
 
 	/**

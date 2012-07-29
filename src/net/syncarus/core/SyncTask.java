@@ -11,19 +11,17 @@ import net.syncarus.model.CancelationException;
 import net.syncarus.model.DiffNode;
 import net.syncarus.model.DiffStatus;
 import net.syncarus.model.SyncException;
-import net.syncarus.rcp.SyncarusPlugin;
 
 import org.apache.commons.io.FileUtils;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.ui.PlatformUI;
 
 /**
  * This job gets all checked nodes from the difference tree and processes them
  * iteratively.
  */
-public class SyncTask implements IRunnableWithProgress {
+public class SyncTask extends SyncarusTask {
 	private class GuiRefresher implements Runnable {
 		int messageType = 0;
 		String title;
@@ -32,13 +30,13 @@ public class SyncTask implements IRunnableWithProgress {
 
 		@Override
 		public void run() {
-			syncView.update();
+			getSyncView().update();
 			switch (messageType) {
 			case 0:
 				MessageDialog.openInformation(null, title, message);
 				break;
 			case 1:
-				SyncarusPlugin.logError(message, error);
+				getPlugin().logError(message, error);
 				break;
 			case 2:
 				MessageDialog.openWarning(null, title, message);
@@ -52,8 +50,6 @@ public class SyncTask implements IRunnableWithProgress {
 
 	private long numOfBytesTotal = 0;
 	private long numOfBytesProcessed = 0;
-	private int worked = 0;
-	private final SyncView syncView;
 
 	/**
 	 * @param syncView
@@ -64,7 +60,7 @@ public class SyncTask implements IRunnableWithProgress {
 	 *            which should be processed
 	 */
 	public SyncTask(SyncView syncView, List<DiffNode> diffNodes) {
-		this.syncView = syncView;
+		super(syncView);
 		diffNodeList.addAll(diffNodes);
 	}
 
@@ -96,7 +92,7 @@ public class SyncTask implements IRunnableWithProgress {
 			// Synchronise selected nodes and destroy processed nodes afterwards
 			synchronize(diffNodeList);
 			// now remove CLEAN directories having no children
-			DiffController.cleanupDiffTree();
+			getRootNode().clean();
 			monitor.done();
 
 			guiRefresher.messageType = 0;
@@ -119,7 +115,7 @@ public class SyncTask implements IRunnableWithProgress {
 			return;
 		} finally {
 			PlatformUI.getWorkbench().getDisplay().syncExec(guiRefresher);
-			DiffController.releaseLock();
+			getSyncView().releaseLock();
 		}
 	}
 
@@ -217,13 +213,13 @@ public class SyncTask implements IRunnableWithProgress {
 				break;
 
 			case REMOVE_FROM_A:
-				DiffController.LOG.add("Deleting '" + fileA.getAbsolutePath() + "'");
+				getProtocol().add("Deleting '" + fileA.getAbsolutePath() + "'");
 				FileUtils.forceDelete(fileA);
 				node.remove();
 				break;
 
 			case REMOVE_FROM_B:
-				DiffController.LOG.add("Deleting '" + fileB.getAbsolutePath() + "'");
+				getProtocol().add("Deleting '" + fileB.getAbsolutePath() + "'");
 				FileUtils.forceDelete(fileB);
 				node.remove();
 				break;
@@ -232,27 +228,6 @@ public class SyncTask implements IRunnableWithProgress {
 				throw new SyncException(SyncException.INCONSISTENT_STATE_EXCEPTION, "Unknown state detected("
 						+ node.getStatus() + ")!");
 			}
-		}
-	}
-
-	public static void touchFile(File oldFile, File newFile) {
-		DiffController.LOG.add("Touching file '" + oldFile.getAbsolutePath() + "'");
-
-		boolean changedWritePerms = false;
-		if (!newFile.canWrite()) {
-			if (!newFile.setWritable(true))
-				throw new SyncException(SyncException.FILE_OPERATION_EXCEPTION, "Couldn't modify timestamp of file '"
-						+ newFile + "'");
-			changedWritePerms = true;
-		}
-
-		try {
-			if (!newFile.setLastModified(oldFile.lastModified()))
-				throw new SyncException(SyncException.FILE_OPERATION_EXCEPTION,
-						"Couldn't modify the modification date of file '" + newFile + "'");
-		} finally {
-			if (changedWritePerms)
-				newFile.setWritable(false);
 		}
 	}
 

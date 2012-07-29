@@ -5,8 +5,7 @@ import java.util.Date;
 
 import net.syncarus.action.log.ClearAction;
 import net.syncarus.action.log.SwitchAction;
-import net.syncarus.core.DiffController;
-import net.syncarus.core.Log;
+import net.syncarus.core.Protocol;
 import net.syncarus.rcp.ResourceRegistry;
 import net.syncarus.rcp.SyncarusPlugin;
 
@@ -18,7 +17,7 @@ import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.ui.part.ViewPart;
 
-public class LogView extends ViewPart implements Log.ChangeListener {
+public class LogView extends ViewPart implements Protocol.ChangeListener {
 	public static final String ID = "net.syncarus.gui.LogView";
 	private Table table;
 	private DateFormat dateFormat = DateFormat.getTimeInstance(DateFormat.MEDIUM);
@@ -41,7 +40,7 @@ public class LogView extends ViewPart implements Log.ChangeListener {
 
 		initializeToolBar();
 
-		DiffController.LOG.addListener(this);
+		SyncarusPlugin.getInstance().getProtocol().addListener(this);
 	}
 
 	@Override
@@ -65,7 +64,7 @@ public class LogView extends ViewPart implements Log.ChangeListener {
 
 	@Override
 	public void dispose() {
-		DiffController.LOG.removeListener(this);
+		SyncarusPlugin.getInstance().getProtocol().removeListener(this);
 		super.dispose();
 	}
 

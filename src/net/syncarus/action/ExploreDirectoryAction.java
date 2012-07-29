@@ -79,6 +79,6 @@ public class ExploreDirectoryAction extends SyncViewAction {
 			}
 		}
 
-		SyncarusPlugin.logError("Opening a file browser window failed.", ex);
+		getPlugin().logError("Opening a file browser window failed.", ex);
 	}
 }

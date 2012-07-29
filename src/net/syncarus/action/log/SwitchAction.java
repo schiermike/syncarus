@@ -1,7 +1,6 @@
 package net.syncarus.action.log;
 
 import net.syncarus.action.SyncarusAction;
-import net.syncarus.core.DiffController;
 import net.syncarus.rcp.ResourceRegistry;
 
 public class SwitchAction extends SyncarusAction {
@@ -22,12 +21,12 @@ public class SwitchAction extends SyncarusAction {
 	private void enableLogging() {
 		setToolTipText("Disable logging facility");
 		setIcon(ResourceRegistry.IMAGE_ENABLE);
-		DiffController.LOG.setEnabled(true);
+		getPlugin().getProtocol().setEnabled(true);
 	}
 
 	private void disableLogging() {
 		setToolTipText("Enable logging facility");
 		setIcon(ResourceRegistry.IMAGE_DISABLE);
-		DiffController.LOG.setEnabled(false);
+		getPlugin().getProtocol().setEnabled(false);
 	}
 }

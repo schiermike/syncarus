@@ -10,18 +10,16 @@ import net.syncarus.gui.SyncView;
 import net.syncarus.model.CancelationException;
 import net.syncarus.model.DiffNode;
 import net.syncarus.model.DiffStatus;
-import net.syncarus.rcp.SyncarusPlugin;
 
 import org.apache.commons.io.FileUtils;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.ui.PlatformUI;
 
 /**
  * This job builds a Difference Tree showing all the detected differences. <br>
  */
-public class DiffTask implements IRunnableWithProgress {
+public class DiffTask extends SyncarusTask {
 	private static final int WORK_MAX = 1000;
 
 	private IProgressMonitor monitor = null;
@@ -35,22 +33,24 @@ public class DiffTask implements IRunnableWithProgress {
 
 		@Override
 		public void run() {
-			syncView.update();
+			getSyncView().update();
 			if (ioException != null) {
 				MessageDialog.openWarning(null, "Differentiation stopped",
 						"Errors occured: " + ioException.getMessage());
-			} else if (!DiffController.getRootDiffNode().hasChildren() && !monitor.isCanceled())
+			} else if (!getRootNode().hasChildren() && !monitor.isCanceled())
 				MessageDialog.openInformation(null, "Differentiation finished", "No changes have been found!");
 		}
 	}
 
 	private long filesTotal;
 	private long filesProcessed;
-	private int worked = 0;
-	private final SyncView syncView;
+	private final boolean syncTimestamps;
+	private final boolean syncTimestampsWithoutChecksum;
 
-	public DiffTask(SyncView syncView) {
-		this.syncView = syncView;
+	public DiffTask(SyncView syncView, boolean syncTimestamps, boolean syncTimestampsWithoutChecksum) {
+		super(syncView);
+		this.syncTimestamps = syncTimestamps;
+		this.syncTimestampsWithoutChecksum = syncTimestampsWithoutChecksum;
 	}
 
 	/**
@@ -63,7 +63,7 @@ public class DiffTask implements IRunnableWithProgress {
 	 */
 	@Override
 	public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
-		if (!DiffController.isInitialized())
+		if (!getPlugin().isInitialized())
 			return;
 		try {
 			// hold the monitor in a class-variable to be accessible in the
@@ -72,33 +72,33 @@ public class DiffTask implements IRunnableWithProgress {
 			monitor.beginTask("Differentiaton", WORK_MAX);
 
 			monitor.subTask("Calculating size of datasets to compare");
-			DiffController.LOG.add("Calculating size of datasets to compare");
-			filesTotal = FileOperation.totalNumOfFiles(DiffController.getRootDiffNode().getAbsoluteFileA());
+			getProtocol().add("Calculating size of datasets to compare");
+			filesTotal = FileOperation.totalNumOfFiles(getRootNode().getAbsoluteFileA());
 
-			DiffController.LOG.add("Comparing directories");
+			getProtocol().add("Comparing directories");
 			monitor.subTask("Comparison of locations A and B");
 
 			GuiRefresher guiRefresher = new GuiRefresher();
 
 			try {
-				DiffController.resetRootDiffNode();
-				buildDiffTreeRecursively(DiffController.getRootDiffNode());
+				getPlugin().resetRootNode();
+				buildDiffTreeRecursively(getRootNode());
 				monitor.done();
 			} catch (CancelationException e) {
 				// Differentiation was aborted - remove loose clean nodes - it
 				// is very likely that such nodes exist after an exception
-				DiffController.cleanupDiffTree();
+				getRootNode().clean();
 			} catch (IOException e) {
 				guiRefresher.setException(e);
-				DiffController.cleanupDiffTree();
+				getRootNode().clean();
 			}
 
 			// report result
 			PlatformUI.getWorkbench().getDisplay().syncExec(guiRefresher);
 		} catch (RuntimeException e) {
-			SyncarusPlugin.logError("Exception occured during differenation process.", e);
+			getPlugin().logError("Exception occured during differenation process.", e);
 		} finally {
-			DiffController.releaseLock();
+			getSyncView().releaseLock();
 		}
 	}
 
@@ -137,7 +137,7 @@ public class DiffTask implements IRunnableWithProgress {
 
 		for (File childA : dirA.listFiles()) {
 			String relativePathChild = localNode.getRelativePath() + File.separator + childA.getName();
-			if (!DiffController.fileFilter.isValid(childA.getName()))
+			if (!getPlugin().getFileFilter().isValid(childA.getName()))
 				continue;
 
 			if (!pathBSet.contains(relativePathChild)) {
@@ -162,7 +162,7 @@ public class DiffTask implements IRunnableWithProgress {
 						localNode.removeChildNode(childNode);
 				} else {
 					DiffStatus status = compareFiles(childA, childB);
-					if (DiffController.syncTimestamps && status == DiffStatus.TOUCH) {
+					if (syncTimestamps && status == DiffStatus.TOUCH) {
 						File oldFile, newFile;
 						if (childA.lastModified() < childB.lastModified()) {
 							oldFile = childA;
@@ -171,7 +171,7 @@ public class DiffTask implements IRunnableWithProgress {
 							oldFile = childB;
 							newFile = childA;
 						}
-						SyncTask.touchFile(oldFile, newFile);
+						touchFile(oldFile, newFile);
 					} else if (status != DiffStatus.CLEAN)
 						localNode.createChildNode(relativePathChild, false, status);
 				}
@@ -184,7 +184,7 @@ public class DiffTask implements IRunnableWithProgress {
 		// add remaining file from side B to the difference-tree
 		for (String relativePathChild : pathBSet) {
 			File childB = new File(localNode.getRoot().getAbsoluteFileB(), relativePathChild);
-			if (!DiffController.fileFilter.isValid(childB.getName()))
+			if (!getPlugin().getFileFilter().isValid(childB.getName()))
 				continue;
 
 			localNode.createChildNode(relativePathChild, childB.isDirectory(), DiffStatus.REMOVE_FROM_B);
@@ -193,7 +193,7 @@ public class DiffTask implements IRunnableWithProgress {
 
 	private DiffStatus compareFiles(File fileA, File fileB) throws IOException {
 		if (fileA.length() == fileB.length() && fileA.lastModified() != fileB.lastModified()
-				&& DiffController.syncTimestampsWithoutChecksum)
+				&& syncTimestampsWithoutChecksum)
 			return DiffStatus.TOUCH;
 
 		if (fileA.lastModified() < fileB.lastModified()) {

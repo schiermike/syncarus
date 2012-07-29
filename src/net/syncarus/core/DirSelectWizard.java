@@ -19,6 +19,7 @@ public class DirSelectWizard extends Wizard {
 	private WizardPageDirChoose rootBSelectPage;
 
 	private WizardDialog dialog;
+	private final SyncarusPlugin plugin;
 
 	/**
 	 * adds 2 WizardPages of type <code>WizardPageDirChoose</code> to the
@@ -33,13 +34,15 @@ public class DirSelectWizard extends Wizard {
 
 	/**
 	 * Initialises the wizard by creating two wizard-pages.
+	 * @param syncarusPlugin 
 	 */
-	public DirSelectWizard() {
+	public DirSelectWizard(SyncarusPlugin plugin) {
+		this.plugin = plugin;
 		File rootADir = null;
 		File rootBDir = null;
-		if (DiffController.isInitialized()) {
-			rootADir = DiffController.getRootDiffNode().getAbsoluteFileA();
-			rootBDir = DiffController.getRootDiffNode().getAbsoluteFileB();
+		if (plugin.isInitialized()) {
+			rootADir = plugin.getRootNode().getAbsoluteFileA();
+			rootBDir = plugin.getRootNode().getAbsoluteFileB();
 		}
 
 		ResourceRegistry rr = SyncarusPlugin.getInstance().getResourceRegistry();
@@ -112,7 +115,7 @@ public class DirSelectWizard extends Wizard {
 	 */
 	@Override
 	public boolean performFinish() {
-		DiffController.initialize(rootASelectPage.getDir(), rootBSelectPage.getDir());
+		plugin.initialize(rootASelectPage.getDir(), rootBSelectPage.getDir());
 		return true;
 	}
 }

@@ -19,4 +19,8 @@ public abstract class SyncarusAction extends Action {
 		ResourceRegistry rr = SyncarusPlugin.getInstance().getResourceRegistry();
 		setImageDescriptor(rr.getImageDescriptor(icon));
 	}
+	
+	protected SyncarusPlugin getPlugin() {
+		return SyncarusPlugin.getInstance();
+	}
 }

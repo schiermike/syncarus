@@ -6,7 +6,7 @@ import java.util.LinkedList;
 
 import org.eclipse.swt.widgets.Display;
 
-public class Log {
+public class Protocol {
 	public static interface ChangeListener extends EventListener {
 		public void newEntry(String message, Date timestamp);
 

@@ -7,6 +7,7 @@ import net.syncarus.gui.SyncView;
 import net.syncarus.model.DiffNode;
 import net.syncarus.rcp.SyncarusPlugin;
 
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.CheckboxTreeViewer;
 import org.eclipse.jface.viewers.IStructuredSelection;
 
@@ -34,5 +35,18 @@ public abstract class SyncViewAction extends SyncarusAction {
 			diffNodes.add((DiffNode) object);
 
 		return diffNodes;
+	}
+	
+	protected boolean aquireLock() {
+		if (!getSyncView().aquireLock()) {
+			MessageDialog.openWarning(getSyncView().getViewSite().getShell(), "Application is busy", 
+					"The requested operation cannot be executed due to other currently running operations!");
+			return false;
+		}
+		return true;
+	}
+	
+	protected void releaseLock() {
+		getSyncView().releaseLock();
 	}
 }

@@ -1,9 +1,13 @@
 package net.syncarus.rcp;
 
+import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
+import net.syncarus.core.FileFilter;
+import net.syncarus.core.Protocol;
 import net.syncarus.gui.SyncView;
+import net.syncarus.model.DiffNode;
 
 import org.eclipse.core.runtime.ILog;
 import org.eclipse.core.runtime.IStatus;
@@ -16,7 +20,59 @@ import org.eclipse.ui.plugin.AbstractUIPlugin;
 public class SyncarusPlugin extends AbstractUIPlugin {
 	public static final String PLUGIN_ID = "Syncarus";
 	private static SyncarusPlugin instance;
-	private static ResourceRegistry resourceRegistry;
+	
+	private ResourceRegistry resourceRegistry;
+	private Protocol protocol = new Protocol();
+	private DiffNode rootDiffNode;
+	private FileFilter fileFilter;
+
+	/**
+	 * Checks whether the root directories have been set (via
+	 * <code>initialise</code>) and exist
+	 * 
+	 * @return true on success, else false
+	 */
+	public boolean isInitialized() {
+		return rootDiffNode != null;
+	}
+
+	/**
+	 * Initialises the Controller by converting paths locations A and B to a
+	 * unique form which only has '/' as folder-separators. Also checks validity
+	 * of locations
+	 * 
+	 * @param rootADir
+	 * @param rootBDir
+	 */
+	public void initialize(File rootADir, File rootBDir) {
+		rootDiffNode = new DiffNode(rootADir, rootBDir);
+		SyncarusPlugin.getInstance().getProtocol().add("rootA='" + rootDiffNode.getAbsolutePathA() +
+				"', rootB='" + rootDiffNode.getAbsolutePathB() + "'");
+	}
+
+	/**
+	 * forget about old differentiation-results and provide a clean
+	 * <code>rootDiffNode</code> for a new differentiation process.
+	 */
+	public void resetRootNode() {
+		rootDiffNode = new DiffNode(rootDiffNode.getAbsoluteFileA(), rootDiffNode.getAbsoluteFileB());
+	}
+
+	/**
+	 * @return the current rootDiffNode or null, when {@link DiffController} hasn't
+	 *         been initialised.
+	 */
+	public DiffNode getRootNode() {
+		return rootDiffNode;
+	}
+	
+	public FileFilter getFileFilter() {
+		return fileFilter;
+	}
+	
+	public void setFileFilter(FileFilter fileFilter) {
+		this.fileFilter = fileFilter;
+	}
 
 	public static SyncarusPlugin getInstance() {
 		return instance;
@@ -32,6 +88,10 @@ public class SyncarusPlugin extends AbstractUIPlugin {
 		return resourceRegistry;
 	}
 	
+	public Protocol getProtocol() {
+		return protocol;
+	}
+	
 	public SyncView getSyncView() {
 		return (SyncView)getWorkbench().getActiveWorkbenchWindow().getActivePage().findView(SyncView.ID);
 	}
@@ -40,7 +100,7 @@ public class SyncarusPlugin extends AbstractUIPlugin {
 		return System.getProperty("os.name").toLowerCase().startsWith("windows");
 	}
 
-	public static void logError(String message, Throwable e) {
+	public void logError(String message, Throwable e) {
 		ILog logger = instance.getLog();
 		logger.log(new Status(IStatus.ERROR, PLUGIN_ID, message, e));
 		StringWriter stringWriter = new StringWriter();
