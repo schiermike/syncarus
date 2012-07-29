@@ -133,17 +133,17 @@ public class SyncTask implements IRunnableWithProgress {
 	private void calcNumOfBytesToCopy(List<DiffNode> diffNodeList) {
 		for (DiffNode node : diffNodeList) {
 			switch (node.getStatus()) {
-			case MOVE_TO_LEFT:
-			case OVERWRITE_LEFT:
-				File rightFile = DiffControl.toRightFile(node);
+			case COPY_TO_A:
+			case REPLACE_A:
+				File rightFile = DiffControl.toFileB(node);
 				if (rightFile.isFile())
 					numOfBytesTotal += rightFile.length();
 				else
 					numOfBytesTotal += FileOperation.totalNumOfBytes(rightFile);
 				break;
-			case MOVE_TO_RIGHT_SIDE:
-			case OVERWRITE_RIGHT:
-				File leftFile = DiffControl.toLeftFile(node);
+			case COPY_TO_B:
+			case REPLACE_B:
+				File leftFile = DiffControl.toFileA(node);
 				if (leftFile.isFile())
 					numOfBytesTotal += leftFile.length();
 				else
@@ -170,21 +170,21 @@ public class SyncTask implements IRunnableWithProgress {
 					|| (node.getStatus() == DiffStatus.UNKNOWN))
 				continue;
 
-			File leftFile = DiffControl.toLeftFile(node);
-			File rightFile = DiffControl.toRightFile(node);
+			File leftFile = DiffControl.toFileA(node);
+			File rightFile = DiffControl.toFileB(node);
 			// process all other nodes
 			switch (node.getStatus()) {
-			case MOVE_TO_LEFT:
+			case COPY_TO_A:
 				FileOperation.copy(rightFile, leftFile, this);
 				node.remove();
 				break;
 
-			case MOVE_TO_RIGHT_SIDE:
+			case COPY_TO_B:
 				FileOperation.copy(leftFile, rightFile, this);
 				node.remove();
 				break;
 
-			case OVERWRITE_LEFT:
+			case REPLACE_A:
 				if (node.isDirectory())
 					throw new SyncException(SyncException.INCONSISTENT_STATE_EXCEPTION, "A DiffNode has state "
 							+ node.getStatus() + " but is a directory - this can't be!");
@@ -193,7 +193,7 @@ public class SyncTask implements IRunnableWithProgress {
 				node.remove();
 				break;
 
-			case OVERWRITE_RIGHT:
+			case REPLACE_B:
 				if (node.isDirectory())
 					throw new SyncException(SyncException.INCONSISTENT_STATE_EXCEPTION, "A DiffNode has state "
 							+ node.getStatus() + " but is a directory - this can't be!");
@@ -216,13 +216,13 @@ public class SyncTask implements IRunnableWithProgress {
 				node.remove();
 				break;
 
-			case REMOVE_LEFT:
+			case REMOVE_FROM_A:
 				DiffControl.LOG.add("Deleting '" + leftFile.getAbsolutePath() + "'");
 				FileUtils.forceDelete(leftFile);
 				node.remove();
 				break;
 
-			case REMOVE_RIGHT:
+			case REMOVE_FROM_B:
 				DiffControl.LOG.add("Deleting '" + rightFile.getAbsolutePath() + "'");
 				FileUtils.forceDelete(rightFile);
 				node.remove();

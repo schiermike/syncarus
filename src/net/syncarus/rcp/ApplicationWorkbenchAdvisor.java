@@ -87,8 +87,8 @@ public class ApplicationWorkbenchAdvisor extends WorkbenchAdvisor {
 		if (DiffControl.isInitialized()) {
 			if (pathSection == null)
 				pathSection = dialogSettings.addNewSection(SETTINGS_PATHS);
-			pathSection.put(SETTINGS_LEFT_ROOT_PATH, DiffControl.leftRootPath);
-			pathSection.put(SETTINGS_RIGHT_ROOT_PATH, DiffControl.rightRootPath);
+			pathSection.put(SETTINGS_LEFT_ROOT_PATH, DiffControl.rootA);
+			pathSection.put(SETTINGS_RIGHT_ROOT_PATH, DiffControl.rootB);
 		}
 		return super.preShutdown();
 	}

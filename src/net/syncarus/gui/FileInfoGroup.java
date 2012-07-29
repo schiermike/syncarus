@@ -10,6 +10,7 @@ import net.syncarus.rcp.SyncarusPlugin;
 
 import org.apache.commons.io.FileUtils;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -23,13 +24,14 @@ public class FileInfoGroup extends Group {
 	private Label modTimeLabel2;
 	private Label sizeLabel;
 	private Label sizeLabel2;
-	private Label locationLabel2;
 	private Label locationLabel;
+	private Label locationLabel2;
 
-	public FileInfoGroup(Composite parent) {
+	public FileInfoGroup(Composite parent, File file) {
 		super(parent, SWT.NONE);
-
+		
 		ResourceRegistry rr = SyncarusPlugin.getInstance().getResourceRegistry();
+		
 		Font normalFont = rr.getFont(ResourceRegistry.FONT_8);
 		Font boldFont = rr.getFont(ResourceRegistry.FONT_BOLD_8);
 
@@ -37,6 +39,17 @@ public class FileInfoGroup extends Group {
 		layout.numColumns = 2;
 		setLayout(layout);
 		setFont(normalFont);
+		
+		setText(file.isFile() ? "File" : "Directory");
+		
+		locationLabel = new Label(this, SWT.NONE);
+		locationLabel.setFont(normalFont);
+		locationLabel.setText("Location:");
+
+		locationLabel2 = new Label(this, SWT.WRAP);
+		locationLabel2.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+		locationLabel2.setFont(boldFont);
+		locationLabel2.setText(file.getAbsolutePath());
 
 		modTimeLabel = new Label(this, SWT.NONE);
 		modTimeLabel.setLayoutData(new GridData(100, SWT.DEFAULT));
@@ -46,44 +59,31 @@ public class FileInfoGroup extends Group {
 		modTimeLabel2 = new Label(this, SWT.WRAP);
 		modTimeLabel2.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 		modTimeLabel2.setFont(boldFont);
-
-		sizeLabel = new Label(this, SWT.NONE);
-		sizeLabel.setFont(normalFont);
-		sizeLabel.setText("Size:");
-
-		sizeLabel2 = new Label(this, SWT.WRAP);
-		sizeLabel2.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-		sizeLabel2.setFont(boldFont);
-
-		locationLabel = new Label(this, SWT.NONE);
-		locationLabel.setFont(normalFont);
-		locationLabel.setText("Location:");
-
-		locationLabel2 = new Label(this, SWT.WRAP);
-		locationLabel2.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
-		locationLabel2.setFont(boldFont);
-	}
-
-	public void setInfo(File file) {
-		if (!file.exists()) {
-			setVisible(false);
-			return;
-		}
-		
-		GridData sizeLabelGridData = (GridData) sizeLabel.getLayoutData();
-		GridData sizeLabelGridData2 = (GridData) sizeLabel2.getLayoutData();
-
 		modTimeLabel2.setText(getDateString(file.lastModified()));
+
 		if (file.isFile()) {
+			sizeLabel = new Label(this, SWT.NONE);
+			sizeLabel.setFont(normalFont);
+			sizeLabel.setText("Size:");
+	
+			sizeLabel2 = new Label(this, SWT.WRAP);
+			sizeLabel2.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+			sizeLabel2.setFont(boldFont);
 			sizeLabel2.setText(formatByteSize(file.length()));
-			sizeLabelGridData.heightHint = -1;
-			sizeLabelGridData2.heightHint = -1;
-		} else {
-			sizeLabelGridData.heightHint = 0;
-			sizeLabelGridData2.heightHint = 0;
 		}
-		locationLabel2.setText(file.getAbsolutePath());
-		setVisible(true);
+	}
+	
+	@Override
+	public void setBackground(Color color) {
+		super.setBackground(color);
+		modTimeLabel.setBackground(color);
+		modTimeLabel2.setBackground(color);
+		if (sizeLabel != null) {
+			sizeLabel.setBackground(color);
+			sizeLabel2.setBackground(color);
+		}
+		locationLabel.setBackground(color);
+		locationLabel2.setBackground(color);
 	}
 
 	private static String formatByteSize(long byteSize) {

@@ -92,16 +92,16 @@ public class SyncTreeViewer extends CheckboxTreeViewer {
 				case CLEAN:
 					imageKey = ResourceRegistry.IMAGE_DIR_NORMAL;
 					break;
-				case MOVE_TO_LEFT:
+				case COPY_TO_A:
 					imageKey = ResourceRegistry.IMAGE_DIR_ADD_LEFT;
 					break;
-				case MOVE_TO_RIGHT_SIDE:
+				case COPY_TO_B:
 					imageKey = ResourceRegistry.IMAGE_DIR_ADD_RIGHT;
 					break;
-				case REMOVE_LEFT:
+				case REMOVE_FROM_A:
 					imageKey = ResourceRegistry.IMAGE_DIR_REMOVE_LEFT;
 					break;
-				case REMOVE_RIGHT:
+				case REMOVE_FROM_B:
 					imageKey = ResourceRegistry.IMAGE_DIR_REMOVE_RIGHT;
 					break;
 				default:
@@ -113,22 +113,22 @@ public class SyncTreeViewer extends CheckboxTreeViewer {
 				case CLEAN:
 					throw new SyncException(SyncException.INCONSISTENT_STATE_EXCEPTION,
 							"A file can't have state clean!");
-				case MOVE_TO_LEFT:
+				case COPY_TO_A:
 					imageKey = ResourceRegistry.IMAGE_FILE_ADD_LEFT;
 					break;
-				case MOVE_TO_RIGHT_SIDE:
+				case COPY_TO_B:
 					imageKey = ResourceRegistry.IMAGE_FILE_ADD_RIGHT;
 					break;
-				case OVERWRITE_LEFT:
+				case REPLACE_A:
 					imageKey = ResourceRegistry.IMAGE_FILE_MODIFY_LEFT;
 					break;
-				case OVERWRITE_RIGHT:
+				case REPLACE_B:
 					imageKey = ResourceRegistry.IMAGE_FILE_MODIFY_RIGHT;
 					break;
-				case REMOVE_LEFT:
+				case REMOVE_FROM_A:
 					imageKey = ResourceRegistry.IMAGE_FILE_REMOVE_LEFT;
 					break;
-				case REMOVE_RIGHT:
+				case REMOVE_FROM_B:
 					imageKey = ResourceRegistry.IMAGE_FILE_REMOVE_RIGHT;
 					break;
 				case TOUCH:

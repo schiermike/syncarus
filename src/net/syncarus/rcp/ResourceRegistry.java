@@ -1,7 +1,5 @@
 package net.syncarus.rcp;
 
-import java.lang.reflect.Field;
-
 import org.eclipse.jface.resource.ColorRegistry;
 import org.eclipse.jface.resource.FontRegistry;
 import org.eclipse.jface.resource.ImageDescriptor;
@@ -59,21 +57,18 @@ public class ResourceRegistry {
 	// fonts
 	public static final FontData FONT_8 = new FontData("?", 8, SWT.NORMAL);
 	public static final FontData FONT_BOLD_8 = new FontData("?", 8, SWT.BOLD);
+	
+	// colors
+	
+	public static final RGB COLOR_RED = new RGB(255, 200, 200);
+	public static final RGB COLOR_GREEN = new RGB(200, 255, 200);
+	public static final RGB COLOR_ORANGE =  new RGB(255, 255, 150);
 
 	// registries
 	private final ColorRegistry COLOR_REGISTRY = new ColorRegistry(Display.getDefault(), true);
 	private final FontRegistry FONT_REGISTRY = new FontRegistry(Display.getDefault());
 
 	private static final String DISABLED_IMAGE = "DISABLED";
-
-	public ResourceRegistry() {
-		try {
-			initializeColors();
-			initializeFonts();
-		} catch (IllegalAccessException e) {
-			e.printStackTrace();
-		}
-	}
 
 	/**
 	 * Returns an enabled image of key
@@ -130,26 +125,11 @@ public class ResourceRegistry {
 	}
 
 	public Font getFont(FontData key) {
-		return FONT_REGISTRY.get(key.toString());
-	}
-
-	private void initializeColors() throws IllegalAccessException {
-		for (Field field : ResourceRegistry.class.getFields()) {
-			if (!field.getName().startsWith("COLOR_"))
-				continue;
-
-			RGB fieldValue = (RGB) field.get(null);
-			COLOR_REGISTRY.put(fieldValue.toString(), fieldValue);
-		}
-	}
-
-	private void initializeFonts() throws IllegalAccessException {
-		for (Field field : ResourceRegistry.class.getFields()) {
-			if (!field.getName().startsWith("FONT_"))
-				continue;
-
-			FontData fieldValue = (FontData) field.get(null);
-			FONT_REGISTRY.put(fieldValue.toString(), new FontData[] { fieldValue });
-		}
+		String name = key.toString();
+		
+		if (!FONT_REGISTRY.hasValueFor(name))
+			FONT_REGISTRY.put(name, new FontData[] { key });
+		
+		return FONT_REGISTRY.get(name);
 	}
 }

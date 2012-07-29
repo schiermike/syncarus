@@ -8,27 +8,28 @@ public enum DiffStatus {
 	/** initial state */
 	UNKNOWN,
 
-	/** source file/folder will be copied to target location */
-	MOVE_TO_RIGHT_SIDE,
+	/** file/folder at location A will be copied to location B */
+	COPY_TO_B,
 
-	/** target file/folder will be copied to source location */
-	MOVE_TO_LEFT,
+	/** file/folder at location B will be copied to location A */
+	COPY_TO_A,
 
-	/** source file will overwrite older file in target location */
-	OVERWRITE_RIGHT,
+	/** file at location A will overwrite older file at location B */
+	REPLACE_B,
 
-	/** target file will overwrite older file in source location */
-	OVERWRITE_LEFT,
+	/** file at location B will overwrite older file at location A */
+	REPLACE_A,
 
-	/** source file/folder will be removed in source location */
-	REMOVE_LEFT,
+	/** file/folder at location A will be removed */
+	REMOVE_FROM_A,
 
-	/** source file/folder will be removed in target location */
-	REMOVE_RIGHT,
+	/** file/folder at location B will be removed */
+	REMOVE_FROM_B,
 
 	/**
-	 * source and target files have different change dates but same size -
-	 * touching the new file with the old date should help here
+	 * both files at locations A and B seem to be identical but have
+	 * different modification dates; the modification date of the newer
+	 * file will be set back to that of the older file
 	 */
 	TOUCH,
 
@@ -50,26 +51,26 @@ public enum DiffStatus {
 	 */
 	public DiffStatus getInvertedDiffStatus() {
 		switch (this) {
-		case MOVE_TO_LEFT:
-			return REMOVE_RIGHT;
-		case REMOVE_LEFT:
-			return MOVE_TO_RIGHT_SIDE;
+		case COPY_TO_A:
+			return REMOVE_FROM_B;
+		case REMOVE_FROM_A:
+			return COPY_TO_B;
 
-		case MOVE_TO_RIGHT_SIDE:
-			return REMOVE_LEFT;
-		case REMOVE_RIGHT:
-			return MOVE_TO_LEFT;
+		case COPY_TO_B:
+			return REMOVE_FROM_A;
+		case REMOVE_FROM_B:
+			return COPY_TO_A;
 
-		case OVERWRITE_LEFT:
-			return OVERWRITE_RIGHT;
-		case OVERWRITE_RIGHT:
-			return OVERWRITE_LEFT;
+		case REPLACE_A:
+			return REPLACE_B;
+		case REPLACE_B:
+			return REPLACE_A;
 
 		case TOUCH:
 			return TOUCH;
 
 		case CONFLICT:
-			return OVERWRITE_RIGHT;
+			return REPLACE_B;
 
 		case CLEAN:
 			return CLEAN;

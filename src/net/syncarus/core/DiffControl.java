@@ -13,8 +13,8 @@ import net.syncarus.model.SyncException;
  */
 public class DiffControl {
 	// '/'-separated paths
-	public static String leftRootPath = null;
-	public static String rightRootPath = null;
+	public static String rootA = null;
+	public static String rootB = null;
 
 	private static DiffNode rootDiffNode = null;
 
@@ -59,9 +59,9 @@ public class DiffControl {
 	 * @return true on success, else false
 	 */
 	public static boolean isInitialized() {
-		if (leftRootPath == null || rightRootPath == null)
+		if (rootA == null || rootB == null)
 			return false;
-		if (!new File(leftRootPath).exists() || !new File(rightRootPath).exists())
+		if (!new File(rootA).exists() || !new File(rootB).exists())
 			return false;
 		return true;
 	}
@@ -76,15 +76,15 @@ public class DiffControl {
 	 */
 	public static void initialize(File leftRootDir, File rightRootDir) {
 		// reformat path-string using '/' as separator char
-		leftRootPath = leftRootDir.getAbsolutePath();
-		if (leftRootPath.endsWith(File.separator)) // remove trailing '/'
-			leftRootPath = leftRootPath.substring(0, leftRootPath.length() - 1);
+		rootA = leftRootDir.getAbsolutePath();
+		if (rootA.endsWith(File.separator)) // remove trailing '/'
+			rootA = rootA.substring(0, rootA.length() - 1);
 
-		rightRootPath = rightRootDir.getAbsolutePath();
-		if (rightRootPath.endsWith(File.separator))
-			rightRootPath = rightRootPath.substring(0, rightRootPath.length() - 1);
+		rootB = rightRootDir.getAbsolutePath();
+		if (rootB.endsWith(File.separator))
+			rootB = rootB.substring(0, rootB.length() - 1);
 
-		LOG.add("left-root='" + leftRootPath + "', right-root='" + rightRootPath + "'");
+		LOG.add("left-root='" + rootA + "', right-root='" + rootB + "'");
 
 		resetRootDiffNode();
 	}
@@ -116,10 +116,10 @@ public class DiffControl {
 		String relativePath;
 		// detect whether the file is from the target or the source location and
 		// remove the leading path
-		if (FileOperation.isSubdirectory(leftRootPath, absolutePath)) {
-			relativePath = absolutePath.substring(leftRootPath.length());
-		} else if (FileOperation.isSubdirectory(rightRootPath, absolutePath)) {
-			relativePath = absolutePath.substring(rightRootPath.length());
+		if (FileOperation.isSubdirectory(rootA, absolutePath)) {
+			relativePath = absolutePath.substring(rootA.length());
+		} else if (FileOperation.isSubdirectory(rootB, absolutePath)) {
+			relativePath = absolutePath.substring(rootB.length());
 		} else
 			throw new SyncException(SyncException.PATH_EXCEPTION, "Error when trying to associate the path '"
 					+ absolutePath + "' to one synchronization side!");
@@ -147,23 +147,23 @@ public class DiffControl {
 	/**
 	 * @return a file object to the absolute source
 	 */
-	public static File toLeftFile(DiffNode node) {
-		return toLeftFile(node.getRelativePath());
+	public static File toFileA(DiffNode node) {
+		return toFileA(node.getRelativePath());
 	}
 
-	public static File toLeftFile(String relativePath) {
-		return new File(leftRootPath + relativePath);
+	public static File toFileA(String relativePath) {
+		return new File(rootA + relativePath);
 	}
 
 	/**
 	 * @return a file object to the absolute target
 	 */
-	public static File toRightFile(DiffNode node) {
-		return toRightFile(node.getRelativePath());
+	public static File toFileB(DiffNode node) {
+		return toFileB(node.getRelativePath());
 	}
 
-	public static File toRightFile(String relativePath) {
-		return new File(rightRootPath + relativePath);
+	public static File toFileB(String relativePath) {
+		return new File(rootB + relativePath);
 	}
 
 	/**
@@ -206,5 +206,13 @@ public class DiffControl {
 			return true;
 		}
 		return false;
+	}
+
+	public static File newerFile(DiffNode node) {
+		return toFileA(node).lastModified() < toFileB(node).lastModified() ? toFileB(node) : toFileA(node);
+	}
+
+	public static File olderFile(DiffNode node) {
+		return toFileA(node).lastModified() > toFileB(node).lastModified() ? toFileB(node) : toFileA(node);
 	}
 }

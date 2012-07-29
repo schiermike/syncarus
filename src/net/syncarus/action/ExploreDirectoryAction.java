@@ -31,10 +31,10 @@ public class ExploreDirectoryAction extends SyncViewAction {
 			if (status == DiffStatus.CLEAN)
 				return true;
 
-			if (isLeftSideAction && (status == DiffStatus.MOVE_TO_RIGHT_SIDE || status == DiffStatus.REMOVE_LEFT))
+			if (isLeftSideAction && (status == DiffStatus.COPY_TO_B || status == DiffStatus.REMOVE_FROM_A))
 				return true;
 
-			if (!isLeftSideAction && (status == DiffStatus.MOVE_TO_LEFT || status == DiffStatus.REMOVE_RIGHT))
+			if (!isLeftSideAction && (status == DiffStatus.COPY_TO_A || status == DiffStatus.REMOVE_FROM_B))
 				return true;
 		}
 
@@ -50,9 +50,9 @@ public class ExploreDirectoryAction extends SyncViewAction {
 
 		// get path and convert it to an UNC path for windows to execute
 		if (isLeftSideAction)
-			exec(DiffControl.toLeftFile(node).getAbsolutePath());
+			exec(DiffControl.toFileA(node).getAbsolutePath());
 		else
-			exec(DiffControl.toRightFile(node).getAbsolutePath());
+			exec(DiffControl.toFileB(node).getAbsolutePath());
 	}
 
 	private void exec(String path) {

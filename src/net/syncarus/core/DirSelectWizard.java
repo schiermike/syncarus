@@ -43,8 +43,8 @@ public class DirSelectWizard extends Wizard {
 		File leftRootDir = null;
 		File rightRootDir = null;
 		if (DiffControl.isInitialized()) {
-			leftRootDir = new File(DiffControl.leftRootPath);
-			rightRootDir = new File(DiffControl.rightRootPath);
+			leftRootDir = new File(DiffControl.rootA);
+			rightRootDir = new File(DiffControl.rootB);
 		}
 
 		ResourceRegistry rr = SyncarusPlugin.getInstance().getResourceRegistry();
