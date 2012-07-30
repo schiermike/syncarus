@@ -14,13 +14,17 @@ public class FileFilter {
 	public static final String SEPARATOR = "|";
 
 	private List<Pattern> namePattern = new ArrayList<Pattern>();
-	private IPropertyChangeListener listener;
 	private IPreferenceStore preferenceStore;
 
 	public FileFilter(IPreferenceStore preferenceStore) {
 		this.preferenceStore = preferenceStore;
-		listener = new PropertyChangeListener();
-		preferenceStore.addPropertyChangeListener(listener);
+		preferenceStore.addPropertyChangeListener(new IPropertyChangeListener() {
+			@Override
+			public void propertyChange(PropertyChangeEvent event) {
+				if (event.getProperty().equals(NAMES_TO_IGNORE))
+					updateNamePattern();
+			}
+		});
 
 		updateNamePattern();
 	}
@@ -74,16 +78,5 @@ public class FileFilter {
 				return false;
 
 		return true;
-	}
-
-	/**
-	 * Listens to changes in to properties and loads the patterns if necessary.
-	 */
-	private class PropertyChangeListener implements IPropertyChangeListener {
-		@Override
-		public void propertyChange(PropertyChangeEvent event) {
-			if (event.getProperty().equals(NAMES_TO_IGNORE))
-				updateNamePattern();
-		}
 	}
 }

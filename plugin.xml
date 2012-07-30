@@ -50,6 +50,6 @@
       </product>
    </extension>
    <extension point="org.eclipse.ui.preferencePages">
-      <page class="net.syncarus.rcp.FilterPreferencePage" id="Syncarus.rcp.FilterPage" name="Filter"/>
+      <page class="net.syncarus.rcp.preferences.FilterPreferencePage" id="Syncarus.rcp.FilterPage" name="Name filter"/>
    </extension>
 </plugin>
