@@ -44,13 +44,9 @@ public class DiffTask extends SyncarusTask {
 
 	private long filesTotal;
 	private long filesProcessed;
-	private final boolean syncTimestamps;
-	private final boolean syncTimestampsWithoutChecksum;
 
-	public DiffTask(SyncView syncView, boolean syncTimestamps, boolean syncTimestampsWithoutChecksum) {
+	public DiffTask(SyncView syncView) {
 		super(syncView);
-		this.syncTimestamps = syncTimestamps;
-		this.syncTimestampsWithoutChecksum = syncTimestampsWithoutChecksum;
 	}
 
 	/**
@@ -137,8 +133,10 @@ public class DiffTask extends SyncarusTask {
 
 		for (File childA : dirA.listFiles()) {
 			String relativePathChild = localNode.getRelativePath() + File.separator + childA.getName();
-			if (!getPlugin().getFileFilter().isValid(childA.getName()))
+			if (!getPlugin().getSettings().isValid(childA.getName())) {
+				worked(childA);
 				continue;
+			}
 
 			if (!pathBSet.contains(relativePathChild)) {
 				// if location B doesn't contain this file/folder
@@ -162,7 +160,7 @@ public class DiffTask extends SyncarusTask {
 						localNode.removeChildNode(childNode);
 				} else {
 					DiffStatus status = compareFiles(childA, childB);
-					if (syncTimestamps && status == DiffStatus.TOUCH) {
+					if (getSettings().shouldImplicitlySyncTimestamps() && status == DiffStatus.TOUCH) {
 						File oldFile, newFile;
 						if (childA.lastModified() < childB.lastModified()) {
 							oldFile = childA;
@@ -184,7 +182,7 @@ public class DiffTask extends SyncarusTask {
 		// add remaining file from side B to the difference-tree
 		for (String relativePathChild : pathBSet) {
 			File childB = new File(localNode.getRoot().getAbsoluteFileB(), relativePathChild);
-			if (!getPlugin().getFileFilter().isValid(childB.getName()))
+			if (!getPlugin().getSettings().isValid(childB.getName()))
 				continue;
 
 			localNode.createChildNode(relativePathChild, childB.isDirectory(), DiffStatus.REMOVE_FROM_B);
@@ -192,8 +190,9 @@ public class DiffTask extends SyncarusTask {
 	}
 
 	private DiffStatus compareFiles(File fileA, File fileB) throws IOException {
-		if (fileA.length() == fileB.length() && fileA.lastModified() != fileB.lastModified()
-				&& syncTimestampsWithoutChecksum)
+		if (fileA.length() == fileB.length() && 
+				fileA.lastModified() != fileB.lastModified() && 
+				getSettings().shouldChecksumIfPotentiallyEqual())
 			return DiffStatus.TOUCH;
 
 		if (fileA.lastModified() < fileB.lastModified()) {
@@ -212,6 +211,10 @@ public class DiffTask extends SyncarusTask {
 			// files have same change date but different size -> conflict
 			return DiffStatus.CONFLICT;
 		}
+		
+		if (getSettings().shouldAlwaysChecksum() && !FileUtils.contentEquals(fileA, fileB))
+			return DiffStatus.CONFLICT;
+		
 		return DiffStatus.CLEAN;
 	}
 

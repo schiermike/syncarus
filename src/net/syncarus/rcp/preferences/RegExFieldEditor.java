@@ -2,7 +2,7 @@ package net.syncarus.rcp.preferences;
 
 import java.util.regex.Pattern;
 
-import net.syncarus.core.FileFilter;
+import net.syncarus.core.Settings;
 
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.IInputValidator;
@@ -104,7 +104,7 @@ public class RegExFieldEditor extends FieldEditor {
 			return;
 
 		String s = getPreferenceStore().getString(getPreferenceName());
-		String[] array = FileFilter.fromPreferenceString(s);
+		String[] array = Settings.filterFromPreferenceString(s);
 		for (int i = 0; i < array.length; i++) {
 			list.add(array[i]);
 		}
@@ -117,7 +117,7 @@ public class RegExFieldEditor extends FieldEditor {
 
 		list.removeAll();
 		String s = getPreferenceStore().getDefaultString(getPreferenceName());
-		String[] array = FileFilter.fromPreferenceString(s);
+		String[] array = Settings.filterFromPreferenceString(s);
 		for (int i = 0; i < array.length; i++) {
 			list.add(array[i]);
 		}
@@ -125,7 +125,7 @@ public class RegExFieldEditor extends FieldEditor {
 
 	@Override
 	protected void doStore() {
-		String s = FileFilter.toPreferenceString(list.getItems());
+		String s = Settings.filterToPreferenceString(list.getItems());
 		if (s != null)
 			getPreferenceStore().setValue(getPreferenceName(), s);
 	}
@@ -241,7 +241,7 @@ public class RegExFieldEditor extends FieldEditor {
 	}
 
 	public RegExFieldEditor(Composite parent) {
-		init(FileFilter.NAMES_TO_IGNORE, "File and directory names to ignore");
+		init(Settings.PREFKEY_FILTER, "File and directory names to ignore");
 		createControl(parent);
 		doFillIntoGrid(parent, 1);
 	}

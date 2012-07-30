@@ -43,28 +43,15 @@ public class CompareAction extends SyncViewAction {
 
 		if (!MessageDialog.openConfirm(null, "Comparison", "The following action will remove all " +
 				"non-synchronized changes done to the difference-tree.\n\nIt may take several minutes depending on " +
-				"the size of the data sets.\nDo you want to proceed?")) {
+				"the size of the data sets.")) {
 			releaseLock();
 			return;
-		}
-
-		boolean syncTimestamps = MessageDialog.openQuestion(null, "Timestamp synchronization", 
-				"Should the file comparison process implicitly synchronize timestamps?\nThis will set the " +
-				"timestamp of files in location A equal to the timestamp of files in location B if their " +
-				"content is equal.");
-		boolean syncTimestampsWithoutChecksum = false;
-		
-		if (syncTimestamps) {
-			syncTimestampsWithoutChecksum = MessageDialog.openQuestion(null, "Timestamp synchronization",
-					"For timestamp synchronization, should it be assumed that files of equal size have the " +
-					"same content?\nThis might significantly speed up the timestamp synchronization process as " +
-					"no checksums have to be calculated. However, changes of files of equal size can no longer be detected.");
 		}
 
 		ProgressMonitorDialog pmd = new ProgressMonitorDialog(PlatformUI.getWorkbench().getDisplay().getActiveShell());
 		try {
 			getSyncView().getProtocol().add("Starting directory comparison.");
-			pmd.run(true, true, new DiffTask(getSyncView(), syncTimestamps, syncTimestampsWithoutChecksum));
+			pmd.run(true, true, new DiffTask(getSyncView()));
 			getSyncView().getProtocol().add("Finished directory comparison.");
 		} catch (Exception e) {
 			getSyncView().getProtocol().add("Directory comparison failed.");

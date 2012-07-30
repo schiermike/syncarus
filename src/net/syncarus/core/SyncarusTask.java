@@ -33,6 +33,10 @@ public abstract class SyncarusTask implements IRunnableWithProgress {
 	public Protocol getProtocol() {
 		return getPlugin().getProtocol();
 	}
+
+	public Settings getSettings() {
+		return getPlugin().getSettings();
+	}
 	
 	protected void touchFile(File oldFile, File newFile) {
 		syncView.getProtocol().add("Touching file '" + oldFile.getAbsolutePath() + "'");

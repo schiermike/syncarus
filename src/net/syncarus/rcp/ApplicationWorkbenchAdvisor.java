@@ -2,7 +2,6 @@ package net.syncarus.rcp;
 
 import java.io.File;
 
-import net.syncarus.core.FileFilter;
 import net.syncarus.gui.SyncView;
 import net.syncarus.model.SyncException;
 
@@ -55,7 +54,7 @@ public class ApplicationWorkbenchAdvisor extends WorkbenchAdvisor {
 
 	@Override
 	public void postStartup() {
-		getPlugin().setFileFilter(new FileFilter(SyncarusPlugin.getInstance().getPreferenceStore()));
+		getPlugin().initSettings();
 
 		IDialogSettings dialogSettings = SyncarusPlugin.getInstance().getDialogSettings();
 		IDialogSettings pathSection = dialogSettings.getSection(SETTINGS_PATHS);

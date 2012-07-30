@@ -4,7 +4,7 @@ import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
-import net.syncarus.core.FileFilter;
+import net.syncarus.core.Settings;
 import net.syncarus.core.Protocol;
 import net.syncarus.gui.SyncView;
 import net.syncarus.model.DiffNode;
@@ -24,7 +24,7 @@ public class SyncarusPlugin extends AbstractUIPlugin {
 	private ResourceRegistry resourceRegistry;
 	private Protocol protocol = new Protocol();
 	private DiffNode rootDiffNode;
-	private FileFilter fileFilter;
+	private Settings settings;
 
 	/**
 	 * Checks whether the root directories have been set (via
@@ -66,14 +66,10 @@ public class SyncarusPlugin extends AbstractUIPlugin {
 		return rootDiffNode;
 	}
 	
-	public FileFilter getFileFilter() {
-		return fileFilter;
+	public Settings getSettings() {
+		return settings;
 	}
 	
-	public void setFileFilter(FileFilter fileFilter) {
-		this.fileFilter = fileFilter;
-	}
-
 	public static SyncarusPlugin getInstance() {
 		return instance;
 	}
@@ -134,5 +130,9 @@ public class SyncarusPlugin extends AbstractUIPlugin {
 		}.setErrorText(message, errorText);
 
 		Display.getDefault().syncExec(runnable);
+	}
+
+	public void initSettings() {
+		settings = new Settings(getPreferenceStore());
 	}
 }
