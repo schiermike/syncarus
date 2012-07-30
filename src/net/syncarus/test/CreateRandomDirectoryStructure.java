@@ -41,26 +41,30 @@ public class CreateRandomDirectoryStructure {
 	}
 
 	@Test
-	public void createRandomFileStructure() {
+	public void createRandomFileStructure() throws IOException {
 		File srcDir = new File(baseDir, "syncarus_A");
 		assertTrue(srcDir.mkdir());
-		try {
-			createSrcFolder(srcDir, 1.0);
-		} catch (IOException e) {
-			fail(e.getMessage());
-		}
+		createSrcFolder(srcDir, 1.0);
 
 		File destDir = new File(baseDir, "syncarus_B");
 		assertTrue(destDir.mkdir());
-		try {
-			createDestFolder(srcDir, destDir);
-		} catch (IOException e) {
-			fail(e.getMessage());
-		}
+		createDestFolder(srcDir, destDir);
 	}
 	
-	public void createDifferenceThatCanOnlyBeDetectedWithChecksums() {
-		// TODO: implement, create files of equal length and mod-date but different content
+	@Test
+	public void createDifferenceThatCanOnlyBeDetectedWithChecksums() throws IOException {
+		File srcDir = new File(baseDir, "test_A");
+		assertTrue(srcDir.mkdir());
+		File destDir = new File(baseDir, "test_B");
+		assertTrue(destDir.mkdir());
+		File fileA = new File(srcDir, "almost_identical.txt");
+		File fileB = new File(destDir, "almost_identical.txt");
+		int size = rand.nextInt(10000);
+		writeRandomContent(fileA, size);
+		writeRandomContent(fileB, size);
+		fileB.setLastModified(fileA.lastModified());
+		
+		// fileA and fileB should have the same size, same date, but different content
 	}
 
 	private static final double PROP_FOLDER = 0.145;
@@ -85,10 +89,13 @@ public class CreateRandomDirectoryStructure {
 	}
 	
 	private void writeRandomContent(File file) throws IOException {
+		writeRandomContent(file, rand.nextInt(2000));
+	}
+	
+	private void writeRandomContent(File file, int length) throws IOException {
 		BufferedWriter writer = new BufferedWriter(new FileWriter(file));
-		int lines = rand.nextInt(100);
-		while (lines-->0)
-			writer.write(genName() + "\n");
+		while (length-->0)
+			writer.write(rand.nextInt(26) + 'A');
 		writer.close();
 	}
 
