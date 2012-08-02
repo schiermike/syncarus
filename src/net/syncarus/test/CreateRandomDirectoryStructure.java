@@ -16,12 +16,12 @@ public class CreateRandomDirectoryStructure {
 
 	private static Random rand = new Random(0);
 
-	private static String genName() {
+	private static String genName(boolean dir) {
 		String name = "";
 		int len = 6;
 		while (len-- > 0)
 			name += ('A' + rand.nextInt(26));
-		return name;
+		return (dir ? "dir_" : "file_") + name;
 	}
 
 	private static File baseDir;
@@ -74,13 +74,13 @@ public class CreateRandomDirectoryStructure {
 		while (true) {
 			double r = rand.nextFloat();
 			if (r < PROP_FOLDER * cf) {
-				File subDir = new File(srcDir, genName());
+				File subDir = new File(srcDir, genName(true));
 				subDir.mkdir();
 				createSrcFolder(subDir,  cf-0.03);
 				continue;
 			}
 			if (r < (PROP_FOLDER + PROP_FILE) * cf) {
-				File file = new File(srcDir, genName());
+				File file = new File(srcDir, genName(false));
 				writeRandomContent(file);
 				continue;
 			}
@@ -89,13 +89,16 @@ public class CreateRandomDirectoryStructure {
 	}
 	
 	private void writeRandomContent(File file) throws IOException {
-		writeRandomContent(file, rand.nextInt(2000));
+		writeRandomContent(file, rand.nextInt(200));
 	}
 	
 	private void writeRandomContent(File file, int length) throws IOException {
 		BufferedWriter writer = new BufferedWriter(new FileWriter(file));
-		while (length-->0)
-			writer.write(rand.nextInt(26) + 'A');
+		char buffer[] = new char[1024];
+		while (length-->0) {
+			buffer[0] = (char)('A' + rand.nextInt(26));
+			writer.write(buffer);
+		}
 		writer.close();
 	}
 

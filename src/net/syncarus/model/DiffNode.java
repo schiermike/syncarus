@@ -60,8 +60,16 @@ public class DiffNode implements Comparable<DiffNode> {
 	 * @param status
 	 *            status code belonging to this node
 	 */
-	public DiffNode createChildNode(String relativePath, boolean isDirectory, DiffStatus status) {
-		return new DiffNode(this, isDirectory, relativePath, status);
+	public DiffNode createChildNode(File child, DiffStatus status) {
+		String relativePath;
+		if (child.getAbsolutePath().startsWith(getRootPathA()))
+			relativePath = child.getAbsolutePath().substring(getRootPathA().length());
+		else if (child.getAbsolutePath().startsWith(getRootPathB()))
+			relativePath = child.getAbsolutePath().substring(getRootPathB().length());
+		else
+			throw new IllegalArgumentException("Cannot create child " + child.getAbsolutePath() + " of node " + this);
+			
+		return new DiffNode(this, child.isDirectory(), relativePath, status);
 	}
 
 	/**
@@ -223,7 +231,7 @@ public class DiffNode implements Comparable<DiffNode> {
 		return relativePath.compareToIgnoreCase(other.getRelativePath());
 	}
 
-	public DiffNode getRoot() {
+	private DiffNode getRoot() {
 		if (root == null) {
 			DiffNode node = this;
 			while (node.parent != null)
@@ -232,24 +240,28 @@ public class DiffNode implements Comparable<DiffNode> {
 		}
 		return root;
 	}
+	
+	public String getRootPathA() {
+		if (getRoot().getAbsolutePathA() == null)
+			throw new IllegalStateException("The absolute path A of the root node is not set.");
+		return getRoot().getAbsolutePathA();
+	}
+	
+	public String getRootPathB() {
+		if (getRoot().getAbsolutePathB() == null)
+			throw new IllegalStateException("The absolute path B of the root node is not set.");
+		return getRoot().getAbsolutePathB();
+	}
 
 	public String getAbsolutePathA() {
-		if (absolutePathA == null) {
-			absolutePathA = getRoot().getAbsolutePathA();
-			if (absolutePathA == null)
-				throw new IllegalStateException("The absolute path A of the root node is not set.");
-			absolutePathA += relativePath;
-		}
+		if (absolutePathA == null)
+			absolutePathA = getRootPathA() + relativePath;
 		return absolutePathA;
 	}
 
 	public String getAbsolutePathB() {
-		if (absolutePathB == null) {
-			absolutePathB = getRoot().getAbsolutePathB();
-			if (absolutePathB == null)
-				throw new IllegalStateException("The absolute path B of the root node is not set.");
-			absolutePathB += relativePath;
-		}
+		if (absolutePathB == null)
+			absolutePathB = getRootPathB() + relativePath;
 		return absolutePathB;
 	}
 
@@ -271,5 +283,13 @@ public class DiffNode implements Comparable<DiffNode> {
 		File a = getAbsoluteFileA();
 		File b = getAbsoluteFileB();
 		return a.lastModified() < b.lastModified() ? a : b;
+	}
+
+	public File[] listFilesA() {
+		return getAbsoluteFileA().listFiles();
+	}
+	
+	public File[] listFilesB() {
+		return getAbsoluteFileB().listFiles();
 	}
 }

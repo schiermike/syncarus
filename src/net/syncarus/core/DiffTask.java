@@ -42,8 +42,8 @@ public class DiffTask extends SyncarusTask {
 		}
 	}
 
-	private long filesTotal;
-	private long filesProcessed;
+	private long totalFilesToProcess;
+	private long filesProcessedSoFar;
 
 	public DiffTask(SyncView syncView) {
 		super(syncView);
@@ -67,19 +67,25 @@ public class DiffTask extends SyncarusTask {
 			this.monitor = monitor;
 			monitor.beginTask("Differentiaton", WORK_MAX);
 
-			monitor.subTask("Calculating size of datasets to compare");
-			getProtocol().add("Calculating size of datasets to compare");
-			filesTotal = FileOperation.totalNumOfFiles(getRootNode().getAbsoluteFileA());
+			String taskDescription = "Analysing directory structure of A";
+			monitor.subTask(taskDescription);
+			getProtocol().add(taskDescription);
+			totalFilesToProcess = FileOperation.totalNumOfFiles(getRootNode().getAbsoluteFileA());
+			
+			taskDescription = "Analysing directory structure of B";
+			monitor.subTask(taskDescription);
+			getProtocol().add(taskDescription);
+			totalFilesToProcess += FileOperation.totalNumOfFiles(getRootNode().getAbsoluteFileB());
 
-			getProtocol().add("Comparing directories");
-			monitor.subTask("Comparison of locations A and B");
+			taskDescription = "Comparing directory content of A and B";
+			monitor.subTask(taskDescription);
+			getProtocol().add(taskDescription);
 
 			GuiRefresher guiRefresher = new GuiRefresher();
 
 			try {
 				getPlugin().resetRootNode();
-				buildDiffTreeRecursively(getRootNode());
-				monitor.done();
+				createNodeTree(getRootNode());
 			} catch (CancelationException e) {
 				// Differentiation was aborted - remove loose clean nodes - it
 				// is very likely that such nodes exist after an exception
@@ -88,6 +94,13 @@ public class DiffTask extends SyncarusTask {
 				guiRefresher.setException(e);
 				getRootNode().clean();
 			}
+			
+			taskDescription = "Filtering results";
+			monitor.subTask(taskDescription);
+			getProtocol().add(taskDescription);
+			filter(getRootNode());
+			
+			monitor.done();
 
 			// report result
 			PlatformUI.getWorkbench().getDisplay().syncExec(guiRefresher);
@@ -110,85 +123,62 @@ public class DiffTask extends SyncarusTask {
 	 * 
 	 * @param localNode
 	 */
-	private void buildDiffTreeRecursively(DiffNode localNode) throws CancelationException,
-			IOException {
+	private void createNodeTree(DiffNode localNode) throws CancelationException, IOException {
 		Set<String> pathBSet = new HashSet<String>();
 
-		File dirA = localNode.getAbsoluteFileA();
-		File dirB = localNode.getAbsoluteFileB();
-
-		// null denotes an I/O error
-		if (dirA.listFiles() == null)
-			throw new IOException("The directory '" + dirA.getAbsolutePath() + "' causes an I/O error!");
-
-		// null denotes an I/O error
-		if (dirB.listFiles() == null)
-			throw new IOException("The directory '" + dirB.getAbsolutePath() + "' causes an I/O error!");
-
 		// copy all children of localRootRight to a HashMap
-		for (File childB : dirB.listFiles()) {
+		for (File childB : localNode.listFilesB()) {
 			String relativePathChild = localNode.getRelativePath() + File.separator + childB.getName();
 			pathBSet.add(relativePathChild);
 		}
 
-		for (File childA : dirA.listFiles()) {
+		for (File childA : localNode.listFilesA()) {
 			String relativePathChild = localNode.getRelativePath() + File.separator + childA.getName();
-			if (!getPlugin().getSettings().isValid(childA.getName())) {
-				worked(childA);
-				continue;
-			}
 
-			if (!pathBSet.contains(relativePathChild)) {
-				// if location B doesn't contain this file/folder
-				// add this file/folder to localNode with appropriate status
-				localNode.createChildNode(relativePathChild, childA.isDirectory(), DiffStatus.COPY_TO_B);
+			if (!pathBSet.remove(relativePathChild)) {
+				// only location A contains this file/folder
+				localNode.createChildNode(childA, DiffStatus.COPY_TO_B);
+				worked(FileOperation.totalNumOfFiles(childA));
 			} else {
-				// location B also contains file/folder with the same name
-				// remove that file/folder from the location B map because it is also
-				// in location A
-				pathBSet.remove(relativePathChild);
+				// both locations contain that file/folder
 				File childB = new File(localNode.getAbsoluteFileB(), childA.getName());
-
-				if (childA.isDirectory()) {
-					// add a node with status clean and exec the recursion on
-					// this folder
-					DiffNode childNode = localNode.createChildNode(relativePathChild, true, DiffStatus.CLEAN);
-					buildDiffTreeRecursively(childNode);
-					// when there were no differences - no subNodes were created
-					// and this node is removed again
-					if (!childNode.hasChildren())
-						localNode.removeChildNode(childNode);
-				} else {
-					DiffStatus status = compareFiles(childA, childB);
-					if (getSettings().shouldImplicitlySyncTimestamps() && status == DiffStatus.TOUCH) {
-						File oldFile, newFile;
-						if (childA.lastModified() < childB.lastModified()) {
-							oldFile = childA;
-							newFile = childB;
-						} else {
-							oldFile = childB;
-							newFile = childA;
-						}
-						touchFile(oldFile, newFile);
-					} else if (status != DiffStatus.CLEAN)
-						localNode.createChildNode(relativePathChild, false, status);
-				}
+				compareChildren(localNode, childA, childB);
 			}
-
-			// increment process monitor
-			worked(childA);
 		}
 
-		// add remaining file from side B to the difference-tree
 		for (String relativePathChild : pathBSet) {
-			File childB = new File(localNode.getRoot().getAbsoluteFileB(), relativePathChild);
-			if (!getPlugin().getSettings().isValid(childB.getName()))
-				continue;
-
-			localNode.createChildNode(relativePathChild, childB.isDirectory(), DiffStatus.REMOVE_FROM_B);
+			// only location B contains this file/folder
+			File childB = new File(localNode.getRootPathB(), relativePathChild);
+			localNode.createChildNode(childB, DiffStatus.REMOVE_FROM_B);
+			worked(FileOperation.totalNumOfFiles(childB));
 		}
 	}
-
+	
+	private void compareChildren(DiffNode localNode, File childA, File childB) throws CancelationException, IOException {
+		if (childA.isDirectory()) {
+			// add a node with status clean and check the folders' contents
+			DiffNode childNode = localNode.createChildNode(childA, DiffStatus.CLEAN);
+			createNodeTree(childNode);
+			// when there were no differences, no nodes should be there and we can safely remove the childNode again
+			if (!childNode.hasChildren()) {
+				localNode.removeChildNode(childNode);
+			}
+		} else {
+			DiffStatus status = compareFiles(childA, childB);
+			if (getSettings().shouldImplicitlySyncTimestamps() && status == DiffStatus.TOUCH) {
+				if (childA.lastModified() < childB.lastModified()) {
+					touchFile(childA, childB);
+				} else {
+					touchFile(childB, childA);
+				}
+				
+			} else if (status != DiffStatus.CLEAN) {
+				localNode.createChildNode(childA, status);
+			}
+			worked(2);
+		}
+	}
+	
 	private DiffStatus compareFiles(File fileA, File fileB) throws IOException {
 		if (fileA.length() == fileB.length() && 
 				fileA.lastModified() != fileB.lastModified() && 
@@ -217,6 +207,17 @@ public class DiffTask extends SyncarusTask {
 		
 		return DiffStatus.CLEAN;
 	}
+	
+	private void filter(DiffNode node) {
+		for (int i = 0; i < node.getChildren().size(); i++) {
+			DiffNode child = node.getChildren().get(i);
+			if (!getPlugin().getSettings().isValid(child.getName())) {
+				child.remove();
+				i--;
+			} else if (child.hasChildren())
+				filter(child);
+		}
+	}
 
 	/**
 	 * help-function which is heavily used by
@@ -229,16 +230,13 @@ public class DiffTask extends SyncarusTask {
 	 * 
 	 * @param numOfFiles
 	 */
-	private void worked(File file) throws CancelationException {
+	private void worked(long filesProcessed) throws CancelationException {
 		if (monitor.isCanceled())
 			throw new CancelationException();
 
-		if (!file.isFile())
-			return;
+		filesProcessedSoFar += filesProcessed;
 
-		filesProcessed++;
-
-		int step = (int) ((filesProcessed * WORK_MAX) / filesTotal) - worked;
+		int step = (int) ((filesProcessedSoFar * WORK_MAX) / totalFilesToProcess) - worked;
 		if (step == 0)
 			return;
 
