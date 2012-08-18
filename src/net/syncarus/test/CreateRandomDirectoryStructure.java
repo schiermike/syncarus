@@ -65,6 +65,20 @@ public class CreateRandomDirectoryStructure {
 		
 		// fileA and fileB should have the same size, same date, but different content
 	}
+	
+	@Test
+	public void createFileAndDirectoryWithSameName() throws IOException {
+		File srcDir = new File(baseDir, "test2_A");
+		assertTrue(srcDir.mkdir());
+		File destDir = new File(baseDir, "test2_B");
+		assertTrue(destDir.mkdir());
+		File fileA = new File(srcDir, "filefoldername");
+		File dirB = new File(destDir, "filefoldername");
+		fileA.createNewFile();
+		dirB.mkdir();
+		dirB.setLastModified(fileA.lastModified() + 1000);
+		
+	}
 
 	private void createSrcFolder(File srcDir, double cf) throws IOException {
 		while (true) {

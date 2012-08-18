@@ -155,6 +155,13 @@ public class DiffTask extends SyncarusTask {
 	}
 	
 	private void compareChildren(DiffNode localNode, File childA, File childB) throws CancelationException, IOException {
+		// left and right location contain an element with the same name, but one is a directory and the other a file
+		if (childA.isFile() ^ childB.isFile()) {
+			localNode.createChildNode(childA, DiffStatus.CONFLICT_FILEFOLDER);
+			worked(1);
+			return;
+		}
+		
 		if (childA.isDirectory()) {
 			// add a node with status clean and check the folders' contents
 			DiffNode childNode = localNode.createChildNode(childA, DiffStatus.CLEAN);
@@ -199,11 +206,11 @@ public class DiffTask extends SyncarusTask {
 			return DiffStatus.REPLACE_B;
 		} else if (fileA.length() != fileB.length()) {
 			// files have same change date but different size -> conflict
-			return DiffStatus.CONFLICT;
+			return DiffStatus.CONFLICT_TIME;
 		}
 		
 		if (getSettings().shouldAlwaysChecksum() && !FileUtils.contentEquals(fileA, fileB))
-			return DiffStatus.CONFLICT;
+			return DiffStatus.CONFLICT_TIME;
 		
 		return DiffStatus.CLEAN;
 	}

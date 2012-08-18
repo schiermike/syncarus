@@ -162,7 +162,7 @@ public class SyncTask extends SyncarusTask {
 	private void synchronize(List<DiffNode> diffNodeList) throws IOException, CancelationException {
 		for (DiffNode node : diffNodeList) {
 			// skip all CLEAN, CONFLICT and UNKNOWN stated nodes
-			if ((node.getStatus() == DiffStatus.CLEAN) || (node.getStatus() == DiffStatus.CONFLICT)
+			if ((node.getStatus() == DiffStatus.CLEAN) || (node.getStatus() == DiffStatus.CONFLICT_TIME)
 					|| (node.getStatus() == DiffStatus.UNKNOWN))
 				continue;
 

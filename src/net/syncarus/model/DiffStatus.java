@@ -40,7 +40,12 @@ public enum DiffStatus {
 	 * some conflict occurred - example: same file-modification date but
 	 * different size
 	 */
-	CONFLICT;
+	CONFLICT_TIME,
+	
+	/**
+	 * in both locations, an element exists with the same name, but one is a file and the other one a folder
+	 */
+	CONFLICT_FILEFOLDER;
 
 	/**
 	 * @return the inverted status<br>
@@ -69,7 +74,10 @@ public enum DiffStatus {
 		case TOUCH:
 			return TOUCH;
 
-		case CONFLICT:
+		case CONFLICT_TIME:
+			return REPLACE_B;
+			
+		case CONFLICT_FILEFOLDER:
 			return REPLACE_B;
 
 		case CLEAN:

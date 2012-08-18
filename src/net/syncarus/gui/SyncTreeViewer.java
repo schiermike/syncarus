@@ -133,7 +133,8 @@ public class SyncTreeViewer extends CheckboxTreeViewer {
 				case TOUCH:
 					imageKey = ResourceRegistry.IMAGE_FILE_TOUCH;
 					break;
-				case CONFLICT:
+				case CONFLICT_TIME:
+				case CONFLICT_FILEFOLDER:
 					imageKey = ResourceRegistry.IMAGE_FILE_CONFLICT;
 					break;
 				default:

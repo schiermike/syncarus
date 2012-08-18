@@ -54,11 +54,17 @@ public class NodeInfoComposite extends Composite {
 			addLabel("will be replaced by");
 			addFileInfo(node.getAbsoluteFileA(), green);
 			break;
-		case CONFLICT:
+		case CONFLICT_TIME:
 			addFileInfo(node.getAbsoluteFileA(), orange);
 			addLabel("< == >");
 			addFileInfo(node.getAbsoluteFileB(), orange);
 			addLabel("Cannot determine which file is newer!");
+			break;
+		case CONFLICT_FILEFOLDER:
+			addFileInfo(node.getAbsoluteFileA(), orange);
+			addLabel("< == >");
+			addFileInfo(node.getAbsoluteFileB(), orange);
+			addLabel("Unable to compare a file against a directory with the same name!");
 			break;
 		case TOUCH:
 			addFileInfo(node.getNewerFile(), red);
