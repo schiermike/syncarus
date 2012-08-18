@@ -99,11 +99,9 @@ public class SyncarusPlugin extends AbstractUIPlugin {
 	public void logError(String message, Throwable e) {
 		ILog logger = instance.getLog();
 		logger.log(new Status(IStatus.ERROR, PLUGIN_ID, message, e));
-		StringWriter stringWriter = new StringWriter();
 		String errorText = "";
 		if (e != null) {
-			e.printStackTrace(new PrintWriter(stringWriter));
-			errorText = stringWriter.getBuffer().toString();
+			errorText = e.getMessage();
 		}
 
 		// show error within the context of the SWT thread
