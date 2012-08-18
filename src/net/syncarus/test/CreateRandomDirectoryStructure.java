@@ -1,6 +1,6 @@
 package net.syncarus.test;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertTrue;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -9,21 +9,20 @@ import java.io.IOException;
 import java.util.Random;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.RandomStringUtils;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 public class CreateRandomDirectoryStructure {
 
-	private static Random rand = new Random(0);
-
-	private static String genName(boolean dir) {
-		String name = "";
-		int len = 6;
-		while (len-- > 0)
-			name += ('A' + rand.nextInt(26));
-		return (dir ? "dir_" : "file_") + name;
-	}
-
+	public static final Random rand = new Random(0);
+	// probability of creating a folder
+	private static final double PROP_FOLDER = 0.145;
+	// probability of creating a file
+	private static final double PROP_FILE = 0.85;
+	// use simple or weird names for files
+	private static boolean simpleNames = false;
+	
 	private static File baseDir;
 
 	@BeforeClass
@@ -66,9 +65,6 @@ public class CreateRandomDirectoryStructure {
 		
 		// fileA and fileB should have the same size, same date, but different content
 	}
-
-	private static final double PROP_FOLDER = 0.145;
-	private static final double PROP_FILE = 0.85;
 
 	private void createSrcFolder(File srcDir, double cf) throws IOException {
 		while (true) {
@@ -173,5 +169,14 @@ public class CreateRandomDirectoryStructure {
 		else
 			FileUtils.deleteDirectory(file);
 	}
-
+	
+	private static String genName(boolean dir) {
+		String name = simpleNames ? simpleName(dir) : RandomStringUtils.random(10);
+		return name.replaceAll("/|\n", "_");
+	}
+	
+	public static String simpleName(boolean dir) {
+		String prefix = dir ? "dir_" : "file_";
+		return prefix + RandomStringUtils.randomAlphanumeric(6);
+	}
 }
