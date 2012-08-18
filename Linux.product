@@ -12,8 +12,9 @@
    <windowImages/>
 
    <splash
-      location="Syncarus" />
+      location="net.syncarus" />
    <launcher name="SynchroMike">
+      <linux icon="/syncarus/launcher.xpm"/>
       <solaris/>
       <win useIco="true">
          <ico path="/SynchroMike/icons/logo.ico"/>
