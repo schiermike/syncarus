@@ -3,6 +3,7 @@ package net.syncarus.gui;
 import java.util.Iterator;
 
 import net.syncarus.model.DiffNode;
+import net.syncarus.rcp.ResourceRegistry;
 import net.syncarus.rcp.SyncarusPlugin;
 
 import org.eclipse.jface.action.IToolBarManager;
@@ -18,10 +19,12 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.ui.part.ViewPart;
 
 public class DiffPropertiesView extends ViewPart implements ISelectionChangedListener {
 	public static final String ID = "net.syncarus.gui.DiffPropertiesView";
+	public static final int MAX_SELECTION_SIZE = 10;
 
 	private Composite container;
 	private ScrolledComposite scrolledComposite;
@@ -35,7 +38,7 @@ public class DiffPropertiesView extends ViewPart implements ISelectionChangedLis
 	public void createPartControl(Composite parent) {
 		scrolledComposite = new ScrolledComposite(parent, SWT.V_SCROLL);
 		container = new Composite(scrolledComposite, SWT.NONE);
-		container.setBackground(container.getDisplay().getSystemColor(SWT.COLOR_BLACK));
+		container.setBackground(container.getDisplay().getSystemColor(SWT.COLOR_GRAY));
 		GridLayout layout = new GridLayout();
 		layout.marginWidth = layout.marginHeight = 0;
 		layout.verticalSpacing = 8;
@@ -66,6 +69,7 @@ public class DiffPropertiesView extends ViewPart implements ISelectionChangedLis
 	}
 
 	// is called by the treeViewer of the SyncView
+	@SuppressWarnings("rawtypes")
 	@Override
 	public void selectionChanged(SelectionChangedEvent event) {
 		// remove all existing elements from the view container
@@ -73,12 +77,22 @@ public class DiffPropertiesView extends ViewPart implements ISelectionChangedLis
 			control.dispose();
 
 		IStructuredSelection selection = (IStructuredSelection) event.getSelection();
+		if (selection.size() > MAX_SELECTION_SIZE) {
+			Label infoLabel = new Label(container, SWT.NONE);
+			infoLabel.setText("Only the first " + DiffPropertiesView.MAX_SELECTION_SIZE + " selected items are shown!");
+			infoLabel.setBackground(container.getDisplay().getSystemColor(SWT.COLOR_YELLOW));
+			ResourceRegistry rr = SyncarusPlugin.getInstance().getResourceRegistry();
+			infoLabel.setFont(rr.getFont(ResourceRegistry.FONT_BOLD_8));
+			infoLabel.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, true, false));
+		} 
+		int count = 0;
 		if (!selection.isEmpty()) {
-			for (@SuppressWarnings("rawtypes")
-			Iterator iter = selection.iterator(); iter.hasNext();) {
+			for (Iterator iter = selection.iterator(); iter.hasNext();) {
 				DiffNode node = (DiffNode) iter.next();
 				NodeInfoComposite comp = new NodeInfoComposite(container, node);
 				comp.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+				if (count++ > MAX_SELECTION_SIZE)
+					break;
 			}
 		}
 
