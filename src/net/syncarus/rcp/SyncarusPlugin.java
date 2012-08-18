@@ -1,8 +1,6 @@
 package net.syncarus.rcp;
 
 import java.io.File;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 
 import net.syncarus.core.Settings;
 import net.syncarus.core.Protocol;

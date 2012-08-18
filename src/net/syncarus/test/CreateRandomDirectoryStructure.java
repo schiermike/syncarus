@@ -72,12 +72,28 @@ public class CreateRandomDirectoryStructure {
 		assertTrue(srcDir.mkdir());
 		File destDir = new File(baseDir, "test2_B");
 		assertTrue(destDir.mkdir());
-		File fileA = new File(srcDir, "filefoldername");
-		File dirB = new File(destDir, "filefoldername");
+		
+		File fileA = new File(srcDir, "fileADirBsameDate");
+		File dirB = new File(destDir, "fileADirBsameDate");
+		fileA.createNewFile();
+		dirB.mkdir();
+		
+		fileA = new File(srcDir, "fileADirB");
+		dirB = new File(destDir, "fileADirB");
 		fileA.createNewFile();
 		dirB.mkdir();
 		dirB.setLastModified(fileA.lastModified() + 1000);
 		
+		File dirA = new File(srcDir, "dirAfileB");
+		File fileB = new File(destDir, "dirAfileB");
+		dirA.mkdir();
+		fileB.createNewFile();
+		
+		dirA = new File(srcDir, "dirAfileBsameDate");
+		fileB = new File(destDir, "dirAfileBsameDate");
+		dirA.mkdir();
+		fileB.createNewFile();
+		dirA.setLastModified(fileA.lastModified() + 1000);
 	}
 
 	private void createSrcFolder(File srcDir, double cf) throws IOException {

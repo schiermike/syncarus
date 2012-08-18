@@ -14,6 +14,7 @@ import java.util.List;
 public class DiffNode implements Comparable<DiffNode> {
 	private final DiffNode parent;
 	private final boolean isDirectory;
+	private final boolean fileVsFolderConflict;
 	private final String relativePath;
 	private final List<DiffNode> children = new ArrayList<DiffNode>();
 	private DiffStatus status = DiffStatus.UNKNOWN;
@@ -33,6 +34,7 @@ public class DiffNode implements Comparable<DiffNode> {
 	public DiffNode(File rootPathA, File rootPathB) {
 		parent = null;
 		isDirectory = true;
+		fileVsFolderConflict = false;
 		relativePath = File.separator;
 
 		if (!rootPathA.isDirectory() || !rootPathA.canWrite())
@@ -81,6 +83,7 @@ public class DiffNode implements Comparable<DiffNode> {
 		this.isDirectory = isDirectory;
 		this.relativePath = relativePath;
 		this.status = status;
+		this.fileVsFolderConflict = status == DiffStatus.CONFLICT_FILEFOLDER;
 
 		if (this.parent != null)
 			parent.addChildNode(this);
@@ -95,7 +98,18 @@ public class DiffNode implements Comparable<DiffNode> {
 	 *         state) is a directory
 	 */
 	public boolean isDirectory() {
-		return isDirectory;
+		if (!fileVsFolderConflict)
+			return isDirectory;
+		switch (status) {
+			case REPLACE_A:
+			case CONFLICT_FILEFOLDER:
+				return getAbsoluteFileA().isDirectory();
+			case REPLACE_B:
+				return getAbsoluteFileB().isDirectory();
+			default:
+				throw new SyncException(SyncException.INCONSISTENT_STATE_EXCEPTION,
+						"Cannot determin the file-object type of the conflict DiffNode");
+		}
 	}
 
 	/**

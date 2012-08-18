@@ -181,19 +181,13 @@ public class SyncTask extends SyncarusTask {
 				break;
 
 			case REPLACE_A:
-				if (node.isDirectory())
-					throw new SyncException(SyncException.INCONSISTENT_STATE_EXCEPTION, "A DiffNode has state "
-							+ node.getStatus() + " but is a directory - this can't be!");
-
+				FileUtils.forceDelete(fileA);
 				FileOperation.copy(fileB, fileA, this);
 				node.remove();
 				break;
 
 			case REPLACE_B:
-				if (node.isDirectory())
-					throw new SyncException(SyncException.INCONSISTENT_STATE_EXCEPTION, "A DiffNode has state "
-							+ node.getStatus() + " but is a directory - this can't be!");
-
+				FileUtils.forceDelete(fileB);
 				FileOperation.copy(fileA, fileB, this);
 				node.remove();
 				break;

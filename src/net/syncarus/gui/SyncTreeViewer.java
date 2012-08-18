@@ -85,16 +85,18 @@ public class SyncTreeViewer extends CheckboxTreeViewer {
 		public Image getImage(Object element) {
 			DiffNode node = (DiffNode) element;
 			String imageKey;
-
+			
 			if (node.isDirectory()) {
 				switch (node.getStatus()) {
 				case CLEAN:
 					imageKey = ResourceRegistry.IMAGE_DIR_NORMAL;
 					break;
 				case COPY_TO_A:
+				case REPLACE_A:
 					imageKey = ResourceRegistry.IMAGE_DIR_ADD_A;
 					break;
 				case COPY_TO_B:
+				case REPLACE_B:
 					imageKey = ResourceRegistry.IMAGE_DIR_ADD_B;
 					break;
 				case REMOVE_FROM_A:
@@ -102,6 +104,9 @@ public class SyncTreeViewer extends CheckboxTreeViewer {
 					break;
 				case REMOVE_FROM_B:
 					imageKey = ResourceRegistry.IMAGE_DIR_REMOVE_B;
+					break;
+				case CONFLICT_FILEFOLDER:
+					imageKey = ResourceRegistry.IMAGE_FILE_CONFLICT;
 					break;
 				default:
 					throw new SyncException(SyncException.INCONSISTENT_STATE_EXCEPTION,
