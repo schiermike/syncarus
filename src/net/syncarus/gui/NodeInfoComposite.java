@@ -56,13 +56,20 @@ public class NodeInfoComposite extends Composite {
 			break;
 		case CONFLICT:
 			addFileInfo(node.getAbsoluteFileA(), orange);
-			addLabel("Cannot determine which file is newer!");
+			addLabel("< == >");
 			addFileInfo(node.getAbsoluteFileB(), orange);
+			addLabel("Cannot determine which file is newer!");
 			break;
 		case TOUCH:
 			addFileInfo(node.getNewerFile(), red);
 			addLabel("will have the same modification date as");
 			addFileInfo(node.getOlderFile(), green);
+			break;
+		case CLEAN:
+			addFileInfo(node.getNewerFile(), green);
+			addLabel("< == > ");
+			addFileInfo(node.getOlderFile(), green);
+			addLabel("Directories are not in sync yet.");
 			break;
 		default:
 			throw new IllegalArgumentException("Cannot display DiffStatus " + node.getStatus() + " in DiffPropertiesView");

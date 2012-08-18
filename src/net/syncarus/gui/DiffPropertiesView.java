@@ -3,7 +3,6 @@ package net.syncarus.gui;
 import java.util.Iterator;
 
 import net.syncarus.model.DiffNode;
-import net.syncarus.model.DiffStatus;
 import net.syncarus.rcp.SyncarusPlugin;
 
 import org.eclipse.jface.action.IToolBarManager;
@@ -78,8 +77,6 @@ public class DiffPropertiesView extends ViewPart implements ISelectionChangedLis
 			for (@SuppressWarnings("rawtypes")
 			Iterator iter = selection.iterator(); iter.hasNext();) {
 				DiffNode node = (DiffNode) iter.next();
-				if (node.getStatus() == DiffStatus.CLEAN)
-					continue;
 				NodeInfoComposite comp = new NodeInfoComposite(container, node);
 				comp.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 			}
