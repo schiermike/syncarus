@@ -1,6 +1,6 @@
 package net.syncarus.test;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -15,11 +15,11 @@ import org.junit.Test;
 
 public class CreateRandomDirectoryStructure {
 
-	public static final Random rand = new Random(0);
+	public static final Random RAND = new Random(0);
 	// probability of creating a folder
 	private static final double PROP_FOLDER = 0.145;
 	// probability of creating a file
-	private static final double PROP_FILE = 0.85;
+	private static final double PROP_FILE = 0.84;
 	// use simple or weird names for files
 	private static boolean simpleNames = false;
 	
@@ -58,7 +58,7 @@ public class CreateRandomDirectoryStructure {
 		assertTrue(destDir.mkdir());
 		File fileA = new File(srcDir, "almost_identical.txt");
 		File fileB = new File(destDir, "almost_identical.txt");
-		int size = rand.nextInt(10000);
+		int size = RAND.nextInt(10000);
 		writeRandomContent(fileA, size);
 		writeRandomContent(fileB, size);
 		fileB.setLastModified(fileA.lastModified());
@@ -98,7 +98,7 @@ public class CreateRandomDirectoryStructure {
 
 	private void createSrcFolder(File srcDir, double cf) throws IOException {
 		while (true) {
-			double r = rand.nextFloat();
+			double r = RAND.nextFloat();
 			if (r < PROP_FOLDER * cf) {
 				File subDir = new File(srcDir, genName(true));
 				subDir.mkdir();
@@ -115,22 +115,27 @@ public class CreateRandomDirectoryStructure {
 	}
 	
 	private void writeRandomContent(File file) throws IOException {
-		writeRandomContent(file, rand.nextInt(200));
+		writeRandomContent(file, RAND.nextInt(200));
 	}
 	
-	private void writeRandomContent(File file, int length) throws IOException {
-		BufferedWriter writer = new BufferedWriter(new FileWriter(file));
-		char buffer[] = new char[1024];
-		while (length-->0) {
-			buffer[0] = (char)('A' + rand.nextInt(26));
-			writer.write(buffer);
+	private void writeRandomContent(File file, int length) {
+		try {
+			BufferedWriter writer = new BufferedWriter(new FileWriter(file));
+			char buffer[] = new char[1024];
+			while (length-->0) {
+				buffer[0] = (char)('A' + RAND.nextInt(26));
+				writer.write(buffer);
+			}
+			writer.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
-		writer.close();
 	}
 
 	private void createDestFolder(File srcDir, File destDir) throws IOException {
 		for (File f : srcDir.listFiles()) {
-			double r = rand.nextFloat();
+			double r = RAND.nextFloat();
 			if (r < 0.05) {
 				// file/folder only available in the source folder
 				continue;
@@ -140,7 +145,7 @@ public class CreateRandomDirectoryStructure {
 					// simply copy the file
 					FileUtils.copyFileToDirectory(f, destDir, true);
 					manipulateFiles(f, new File(destDir, f.getName()));
-				} else if (rand.nextFloat() < 0.1) {
+				} else if (RAND.nextFloat() < 0.1) {
 					// copy the directory, nothing else to be done here
 					FileUtils.copyDirectory(f,  destDir, true);
 				} else {
@@ -164,7 +169,7 @@ public class CreateRandomDirectoryStructure {
 	 * @throws IOException 
 	 */
 	private void manipulateFiles(File srcFile, File destFile) throws IOException {
-		double r = rand.nextFloat();
+		double r = RAND.nextFloat();
 		
 		if (r < 0.05) {
 			// same content, source newer time
@@ -200,13 +205,37 @@ public class CreateRandomDirectoryStructure {
 			FileUtils.deleteDirectory(file);
 	}
 	
+	private static final String WIN_REGEX = "\\\\|/|:|\\*|\\?|\"|\\||<|>|\0|[\u0000-\u001f]";
+	private static final String LINUX_REGEX= "/|\0";
 	private static String genName(boolean dir) {
-		String name = simpleNames ? simpleName(dir) : RandomStringUtils.random(10);
-		return name.replaceAll("/|\n", "_");
+		String name = simpleNames ? simpleName(dir) : RandomStringUtils.random(8);
+		if (isWindows()) {
+			return name.replaceAll(WIN_REGEX, "_");
+		} else if (isLinux()) {
+			return name.replaceAll(LINUX_REGEX, "_");
+		}
+		else
+			throw new RuntimeException("This OS is not supported.");
+	}
+	
+	@Test
+	public void replace() {
+		String test = "\\/:*?\"|<>\0\u0004\u0008\u0012\u0016\u001f\u0014".replaceAll(WIN_REGEX, "X");
+		assertEquals("XXXXXXXXXXXXXXXX", test);
 	}
 	
 	public static String simpleName(boolean dir) {
 		String prefix = dir ? "dir_" : "file_";
 		return prefix + RandomStringUtils.randomAlphanumeric(6);
+	}
+	
+	public static boolean isWindows() {
+		String os = System.getProperty("os.name").toLowerCase();
+		return (os.indexOf("win") >= 0);
+	}
+ 
+	public static boolean isLinux() {
+		String os = System.getProperty("os.name").toLowerCase();
+		return (os.indexOf("nix") >= 0 || os.indexOf("nux") >= 0);
 	}
 }
