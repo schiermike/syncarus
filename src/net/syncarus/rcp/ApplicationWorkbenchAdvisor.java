@@ -2,7 +2,6 @@ package net.syncarus.rcp;
 
 import java.io.File;
 
-import net.syncarus.gui.SyncView;
 import net.syncarus.model.SyncException;
 
 import org.eclipse.jface.dialogs.IDialogSettings;
@@ -69,13 +68,7 @@ public class ApplicationWorkbenchAdvisor extends WorkbenchAdvisor {
 				}
 		}
 
-		getSyncView().update();
 		super.postStartup();
-	}
-
-	private SyncView getSyncView() {
-		return (SyncView) getWorkbenchConfigurer().getWorkbench().getActiveWorkbenchWindow().getActivePage()
-				.findView(SyncView.ID);
 	}
 
 	@Override
