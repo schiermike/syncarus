@@ -13,11 +13,11 @@
 
    <splash
       location="net.syncarus" />
-   <launcher name="SynchroMike">
+   <launcher name="Syncarus">
       <linux icon="/syncarus/launcher.xpm"/>
       <solaris/>
       <win useIco="true">
-         <ico path="/SynchroMike/icons/logo.ico"/>
+         <ico path="/Syncarus/icons/logo.ico"/>
          <bmp/>
       </win>
    </launcher>
