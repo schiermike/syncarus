@@ -22,6 +22,7 @@ public class SwitchStatusAction extends SyncViewAction {
 		for (DiffNode node : getSelectedNodes())
 			switchStatus(node);
 		getTreeViewer().refresh();
+		getTreeViewer().setSelection(getTreeViewer().getSelection());
 	}
 
 	// recursively switch all states of nodes
